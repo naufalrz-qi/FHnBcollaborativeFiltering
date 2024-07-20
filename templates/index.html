@@ -1,0 +1,8 @@
+{% extends "layouts/base_normal.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h2>Welcome to the Home Page</h2>
+<p>Please <a href="{{ url_for('login') }}">log in</a> to access the forum or <a href="{{ url_for('register') }}">register</a> if you don't have an account.</p>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "layouts/base_normal.html" %}
+
+{% block title %}Forum{% endblock %}
+
+{% block content %}
+<h2>Forum</h2>
+<p>Welcome, {{ session['username'] }}!</p>
+
+<h3>Posts</h3>
+<ul>
+    {% for post in posts %}
+        <li>
+            <h4>{{ post.title }}</h4>
+            <p>{{ post.question }}</p>
+            <p><strong>Topic:</strong> {{ post.topic }}</p>
+            <p><strong>Date:</strong> {{ post.date }}</p>
+            {% if post.post_pic %}
+                <img src="{{ url_for('static', filename='post_pics/' + post.post_pic) }}" alt="Post Picture">
+            {% endif %}
+
+            <!-- Display likes -->
+            <p><strong>Likes:</strong> {{ post.like_count }}</p>
+
+            <!-- Like/Unlike button -->
+            {% if post._id in user_likes %}
+                <form action="{{ url_for('unlike_post', post_id=post._id) }}" method="post">
+                    <input type="submit" value="Unlike">
+                </form>
+            {% else %}
+                <form action="{{ url_for('like_post', post_id=post._id) }}" method="post">
+                    <input type="submit" value="Like">
+                </form>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
+
+<h3>Recommended Posts</h3>
+<ul>
+    {% for post in recommendations %}
+        <li>
+            <h4>{{ post.title }}</h4>
+            <p>{{ post.question }}</p>
+            <p><strong>Topic:</strong> {{ post.topic }}</p>
+            <p><strong>Date:</strong> {{ post.date }}</p>
+            {% if post.post_pic %}
+                <img src="{{ url_for('static', filename='post_pics/' + post.post_pic) }}" alt="Post Picture">
+            {% endif %}
+
+            <!-- Display likes -->
+            <p><strong>Likes:</strong> {{ post.like_count }}</p>
+
+            <!-- Like/Unlike button -->
+            {% if post._id in user_likes %}
+                <form action="{{ url_for('unlike_post', post_id=post._id) }}" method="post">
+                    <input type="submit" value="Unlike">
+                </form>
+            {% else %}
+                <form action="{{ url_for('like_post', post_id=post._id) }}" method="post">
+                    <input type="submit" value="Like">
+                </form>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
+
+<p><a href="{{ url_for('create_post') }}">Create a new post</a></p>
+{% endblock %}

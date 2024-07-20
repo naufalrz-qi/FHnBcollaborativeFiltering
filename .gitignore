@@ -1,0 +1,5 @@
+.env
+recommendations.json
+__pycache__/
+venv/
+.ipynb_checkpoints/

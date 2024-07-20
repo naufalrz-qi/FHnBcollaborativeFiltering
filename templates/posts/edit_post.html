@@ -1,0 +1,69 @@
+{% extends "layouts/base_normal.html" %}
+
+{% block title %}Edit Post{% endblock %}
+
+{% block content %}
+<h2>Edit Post</h2>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class="flashes">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
+<form method="post" action="{{ url_for('edit_post', post_id=post._id) }}" enctype="multipart/form-data">
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" value="{{ post.title }}" required><br>
+
+    <label for="question">Question:</label>
+    <textarea id="question" name="question" required>{{ post.question }}</textarea><br>
+
+    <label for="topic">Topic:</label>
+    <select id="topic" name="topic">
+        {% if not topics %}
+            <option value="new_topic">Create a new topic</option>
+        {% else %}
+            {% for topic in topics %}
+                <option value="{{ topic.name }}" {% if topic.name == post.topic %}selected{% endif %}>{{ topic.name }}</option>
+            {% endfor %}
+            <option value="new_topic">Other</option>
+        {% endif %}
+    </select><br>
+
+    <div id="new_topic_div" style="display: none;">
+        <label for="new_topic">New Topic:</label>
+        <input type="text" id="new_topic" name="new_topic"><br>
+    </div>
+
+    <label for="post_pic">Post Picture (optional):</label>
+    <input type="file" id="post_pic" name="post_pic"><br>
+    {% if post.post_pic %}
+        <img src="{{ url_for('static', filename='post_pics/' + post.post_pic) }}" alt="Post Picture"><br>
+        <input type="checkbox" id="remove_pic" name="remove_pic"> Remove Picture
+    {% endif %}
+
+    <input type="submit" value="Update Post">
+</form>
+
+<script>
+    function toggleNewTopicDiv() {
+        var newTopicDiv = document.getElementById('new_topic_div');
+        var topicSelect = document.getElementById('topic');
+        if (topicSelect.value === 'new_topic') {
+            newTopicDiv.style.display = 'block';
+        } else {
+            newTopicDiv.style.display = 'none';
+        }
+    }
+    
+    // Add event listener to the topic dropdown
+    document.getElementById('topic').addEventListener('change', toggleNewTopicDiv);
+    
+    // Initial check when the page loads
+    toggleNewTopicDiv();
+</script>
+{% endblock %}

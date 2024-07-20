@@ -1,0 +1,65 @@
+{% extends "layouts/base_normal.html" %}
+
+{% block title %}Create Post{% endblock %}
+
+{% block content %}
+<h2>Create a New Post</h2>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class="flashes">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
+<form method="post" action="{{ url_for('create_post') }}" enctype="multipart/form-data">
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" required value="{{ request.form.title }}"><br>
+
+    <label for="question">Question:</label>
+    <textarea id="question" name="question" required>{{ request.form.question }}</textarea><br>
+
+    <label for="topic">Topic:</label>
+    <select id="topic" name="topic">
+        {% if not topics %}
+            <option value="new_topic">Create a new topic</option>
+        {% else %}
+            {% for topic in topics %}
+                <option value="{{ topic.name }}" {% if request.form.topic == topic.name %}selected{% endif %}>{{ topic.name }}</option>
+            {% endfor %}
+            <option value="new_topic" {% if request.form.topic == 'new_topic' %}selected{% endif %}>Other</option>
+        {% endif %}
+    </select><br>
+
+    <div id="new_topic_div" style="display: none;">
+        <label for="new_topic">New Topic:</label>
+        <input type="text" id="new_topic" name="new_topic" value="{{ request.form.new_topic }}"><br>
+    </div>
+
+    <label for="post_pic">Post Picture (optional):</label>
+    <input type="file" id="post_pic" name="post_pic"><br>
+
+    <input type="submit" value="Create Post">
+</form>
+
+<script>
+    function toggleNewTopicDiv() {
+        var newTopicDiv = document.getElementById('new_topic_div');
+        var topicSelect = document.getElementById('topic');
+        if (topicSelect.value === 'new_topic') {
+            newTopicDiv.style.display = 'block';
+        } else {
+            newTopicDiv.style.display = 'none';
+        }
+    }
+    
+    // Add event listener to the topic dropdown
+    document.getElementById('topic').addEventListener('change', toggleNewTopicDiv);
+    
+    // Initial check when the page loads
+    toggleNewTopicDiv();
+</script>
+{% endblock %}
