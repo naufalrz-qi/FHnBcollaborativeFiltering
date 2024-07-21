@@ -4,28 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Normal User Dashboard{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="/static/css/navbar.css">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
 </head>
-<body>
-    <header>
-        <h1>Welcome to the Forum</h1>
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('forum') }}">Forum</a></li>
-                <li><a href="{{ url_for('create_post') }}">Create Post</a></li>
-                <li><a href="{{ url_for('logout') }}">Logout</a></li>
-            </ul>
-        </nav>
-    </header>
+<body class="bg-success bg-gradient">
+    {% include 'layouts/components/header.html' %}
 
-    <main>
-        {% block content %}
-        <!-- Main content will be injected here -->
-        {% endblock %}
+    <main class="container mt-4">
+        <div class="shadow rounded p-5 bg-white">
+            {% block content %}
+            <!-- Main content will be injected here -->
+            {% endblock %}
+        </div>
     </main>
 
-    <footer>
-        <p>&copy; 2024 Your Website</p>
-    </footer>
+    {% include 'layouts/components/footer.html' %}
+
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {% block script %}
+        
+    {% endblock %}
+
 </body>
 </html>

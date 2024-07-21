@@ -16,6 +16,8 @@
 {% endwith %}
 
 <form method="post" action="{{ url_for('register') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
     <label for="username">Username:</label>
     <input type="text" id="username" name="username" required value="{{ request.form.username }}"><br>
 

@@ -94,31 +94,39 @@ def post_edit(post_id):
 
     return render_template('posts/edit_post.html', post=post, topics=topics)
 
+
 def post_like(post_id):
     if 'username' not in session:
         return redirect(url_for('index'))
 
+    print('=========================================')
+    print('INI ADALAH :',post_id)
     user_id = session.get('user_id')
     if not likes_collection.find_one({"user_id": user_id, "post_id": post_id}):
         likes_collection.insert_one({"user_id": user_id, "post_id": post_id})
-        post = posts_collection.find_one({"_id": ObjectId(post_id)})
-        posts_collection.update_one({"_id": ObjectId(post_id)}, {"$inc": {"like_count": 1}})
         train_model()  # Update recommendations
-        return jsonify({"success": True, "like_count": post['like_count'] + 1}), 200
+        post = posts_collection.find_one({"_id": ObjectId(post_id)})
+        post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
+
+        return jsonify({"success": True, "like_count": post['like_count']}), 200
     else:
         return jsonify({"success": False, "message": "Post already liked"}), 400
+
 
 def post_unlike(post_id):
     if 'username' not in session:
         return redirect(url_for('index'))
 
     user_id = session.get('user_id')
+    print('=========================================')
+    print('INI ADALAH :',post_id)    
     like = likes_collection.find_one({"user_id": user_id, "post_id": post_id})
     if like:
         likes_collection.delete_one({"_id": like['_id']})
         post = posts_collection.find_one({"_id": ObjectId(post_id)})
-        posts_collection.update_one({"_id": ObjectId(post_id)}, {"$inc": {"like_count": -1}})
+        post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
+
         train_model()  # Update recommendations
-        return jsonify({"success": True, "like_count": post['like_count'] - 1}), 200
+        return jsonify({"success": True, "like_count": post['like_count']}), 200
     else:
         return jsonify({"success": False, "message": "Post not liked yet"}), 400

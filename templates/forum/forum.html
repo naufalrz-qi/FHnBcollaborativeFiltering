@@ -3,118 +3,112 @@
 {% block title %}Forum{% endblock %}
 
 {% block content %}
-<h2>Forum</h2>
-<p>Welcome, {{ session['username'] }}!</p>
+<div class="container mt-4">
+    <h2>Forum</h2>
+    <p>Welcome, {{ profilename }}!</p>
 
-<h3>Posts</h3>
-<ul>
-    {% for post in posts %}
-        <li id="post-{{ post._id }}">
-            <h4>{{ post.title }}</h4>
-            <p>{{ post.question }}</p>
-            <p><strong>Topic:</strong> {{ post.topic }}</p>
-            <p><strong>Date:</strong> {{ post.date }}</p>
-            {% if post.post_pic %}
-                <img src="{{ url_for('static', filename='post_pics/' + post.post_pic) }}" alt="Post Picture">
-            {% endif %}
-
-            <!-- Display likes -->
-            <p><strong>Likes:</strong> <span class="like-count">{{ post.like_count }}</span></p>
-
-            <!-- Like/Unlike button -->
-            <form class="like-form" method="POST" action="{{ url_for('like_post', post_id=post._id) }}">
-                {{ csrf_token() }}
-                {% if post._id in user_likes %}
-                    <button type="submit" class="like-button" data-action="unlike">Unlike</button>
-                {% else %}
-                    <button type="submit" class="like-button" data-action="like">Like</button>
+    <h3>Recommended Posts</h3>
+    <ul class="list-group rounded">
+        {% for post in recommendations %}
+            <li id="post-{{ post._id }}" class="list-group-item bg-success bg-opacity-10 mb-3 rounded p-5">
+                <h4>{{ post.title }}</h4>
+                <p>{{ post.question }}</p>
+                <p><strong>Topic:</strong> {{ post.topic }}</p>
+                <p><strong>Date:</strong> {{ post.date }}</p>
+                {% if post.post_pic %}
+                    <img src="{{ url_for('static', filename='post_pics/' + post.post_pic) }}" alt="Post Picture" class="img-fluid mb-2">
                 {% endif %}
-            </form>
 
-            <!-- Edit and Delete buttons for user's own posts -->
-            {% if post.id_user == session['user_id'] %}
-                <a href="{{ url_for('edit_post', post_id=post._id) }}">Edit</a>
-                <form class="delete-form" action="{{ url_for('delete_post', post_id=post._id) }}" method="post" style="display:inline;">
-                    {{ csrf_token() }}
-                    <input type="submit" value="Delete">
+
+                <!-- Like/Unlike button -->
+                <form class="like-form" method="POST" action="#">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    {% if post._id in user_likes %}
+                        <button type="button" class="btn btn-outline-danger like-button" data-action="unlike" data-post-id="{{ post._id }}">❤️</button>
+                    {% else %}
+                        <button type="button" class="btn btn-outline-secondary like-button" data-action="like" data-post-id="{{ post._id }}">🤍</button>
+                    {% endif %}
+                    <span style="font-weight: 700;">{{ post.like_count }}</span>
                 </form>
-            {% endif %}
-        </li>
-    {% endfor %}
-</ul>
+            </li>
+        {% endfor %}
+    </ul>
 
-<h3>Recommended Posts</h3>
-<ul>
-    {% for post in recommendations %}
-        <li id="post-{{ post._id }}">
-            <h4>{{ post.title }}</h4>
-            <p>{{ post.question }}</p>
-            <p><strong>Topic:</strong> {{ post.topic }}</p>
-            <p><strong>Date:</strong> {{ post.date }}</p>
-            {% if post.post_pic %}
-                <img src="{{ url_for('static', filename='post_pics/' + post.post_pic) }}" alt="Post Picture">
-            {% endif %}
-
-            <!-- Display likes -->
-            <p><strong>Likes:</strong> <span class="like-count">{{ post.like_count }}</span></p>
-
-            <!-- Like/Unlike button -->
-            <form class="like-form" method="POST" action="{{ url_for('like_post', post_id=post._id) }}">
-                {{ csrf_token() }}
-                {% if post._id in user_likes %}
-                    <button type="submit" class="like-button" data-action="unlike">Unlike</button>
-                {% else %}
-                    <button type="submit" class="like-button" data-action="like">Like</button>
+    <h3 class="mt-4">Posts</h3>
+    <ul class="list-group rounded">
+        {% for post in posts %}
+            <li id="post-{{ post._id }}" class="list-group-item bg-success bg-opacity-10 mb-3 rounded p-5">
+                <h4>{{ post.title }}</h4>
+                <p>{{ post.question }}</p>
+                <p><strong>Topic:</strong> {{ post.topic }}</p>
+                <p><strong>Date:</strong> {{ post.date }}</p>
+                {% if post.post_pic %}
+                    <img src="{{ url_for('static', filename='post_pics/' + post.post_pic) }}" alt="Post Picture" class="img-fluid mb-2">
                 {% endif %}
-            </form>
-        </li>
-    {% endfor %}
-</ul>
 
-<p><a href="{{ url_for('create_post') }}">Create a new post</a></p>
+                <!-- Like/Unlike button -->
+                <form class="like-form" method="POST" action="#">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    {% if post._id in user_likes %}
+                        <button type="button" class="btn btn-outline-danger like-button" data-action="unlike" data-post-id="{{ post._id }}">❤️</button>
+                    {% else %}
+                        <button type="button" class="btn btn-outline-secondary like-button" data-action="like" data-post-id="{{ post._id }}">🤍</button>
+                    {% endif %}
+                    {{ post.like_count }}
+                </form>
 
+                <!-- Edit and Delete buttons for user's own posts -->
+                {% if post.id_user == session['user_id'] %}
+                    <a href="{{ url_for('edit_post', post_id=post._id) }}" class="btn btn-warning btn-sm me-2">Edit</a>
+                    <form class="delete-form d-inline" action="{{ url_for('delete_post', post_id=post._id) }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="submit" value="Delete" class="btn btn-danger btn-sm">
+                    </form>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <p class="mt-4"><a href="{{ url_for('create_post') }}" class="btn btn-primary">Create a new post</a></p>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function() {
+$(document).ready(function() {
     // Function to handle like/unlike button clicks
-    function handleLikeButtonClick(event) {
-        event.preventDefault();
-        const form = event.target.closest('form');
-        const action = form.querySelector('.like-button').dataset.action;
+    $('.like-button').click(function() {
+        var button = $(this);
+        var action = button.data('action');
+        var postId = button.data('post-id');
+        var url = action === 'like' ? '/like_post/' + postId : '/unlike_post/' + postId;
 
-        fetch(form.action, {
-            method: 'POST',
+        $.ajax({
+            type: 'POST',
+            url: url,
             headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': form.querySelector('input[name="csrf_token"]').value
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
             },
-            body: JSON.stringify({})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const likeCountElement = form.closest('li').querySelector('.like-count');
-                likeCountElement.textContent = data.like_count;
-
-                if (action === 'like') {
-                    form.querySelector('.like-button').dataset.action = 'unlike';
-                    form.querySelector('.like-button').textContent = 'Unlike';
+            success: function(response) {
+                if (response.success) {
+                    button.closest('li').find('.like-count').text(response.like_count);
+                    if (action === 'like') {
+                        button.data('action', 'unlike').removeClass('btn-outline-secondary').addClass('btn-outline-danger').text('❤️');
+                    } else {
+                        button.data('action', 'like').removeClass('btn-outline-danger').addClass('btn-outline-secondary').text('🤍');
+                    }
                 } else {
-                    form.querySelector('.like-button').dataset.action = 'like';
-                    form.querySelector('.like-button').textContent = 'Like';
+                    alert(response.message);
                 }
-            } else {
+            },
+            error: function() {
                 alert('Something went wrong. Please try again.');
             }
-        })
-        .catch(error => console.error('Error:', error));
-    }
-
-    // Attach event listeners to like/unlike buttons
-    const likeButtons = document.querySelectorAll('.like-form .like-button');
-    likeButtons.forEach(button => {
-        button.addEventListener('click', handleLikeButtonClick);
+        });
     });
 });
 </script>
-
 {% endblock %}

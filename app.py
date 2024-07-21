@@ -39,7 +39,8 @@ def load_recommendations(user_id):
     for post_id in recommended_post_ids:
         post = posts_collection.find_one({"_id": ObjectId(post_id)})
         if post:
-            post['like_count'] = likes_collection.count_documents({"post_id": post_id})
+            post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
+            post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
             recommended_posts.append(post)
     return recommended_posts
 
@@ -69,14 +70,18 @@ def forum():
     user_id = session.get('user_id')
     posts = list(posts_collection.find())
     topics = list(topics_collection.find())
-    user_likes = set(like['post_id'] for like in likes_collection.find({"user_id": user_id}))
-
+    
+    # Kumpulkan semua likes dari pengguna yang sedang login
+    user_likes = set(str(like['post_id']) for like in likes_collection.find({"user_id": user_id}))
+    user = users_collection.find_one({'_id':ObjectId(user_id)})
+    profilename= user['profile_name']
     # Fetch the number of likes for each post
     for post in posts:
         post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
+        post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
 
     recommendations = load_recommendations(user_id)  # Load recommendations for current user
-    return render_template('forum/forum.html', posts=posts, topics=topics, user_likes=user_likes, recommendations=recommendations)
+    return render_template('forum/forum.html', posts=posts, topics=topics,profilename=profilename, user_likes=user_likes, recommendations=recommendations)
 
 @app.route('/create_post', methods=['GET', 'POST'])
 def create_post():
