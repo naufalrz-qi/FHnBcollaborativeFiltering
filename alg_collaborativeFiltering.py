@@ -41,8 +41,8 @@ num_posts = len(posts)
 ratings_matrix = np.zeros((num_users, num_posts))
 
 for like in likes:
-    user_id_str = like['user_id']
-    post_id_str = like['post_id']
+    user_id_str = str(like['user_id'])
+    post_id_str = str(like['post_id'])
     
     # Debug output: Check if the ID exists in the mappings
     if user_id_str not in user_ids:

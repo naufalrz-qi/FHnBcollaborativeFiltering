@@ -9,7 +9,7 @@
 <h3>Posts</h3>
 <ul>
     {% for post in posts %}
-        <li>
+        <li id="post-{{ post._id }}">
             <h4>{{ post.title }}</h4>
             <p>{{ post.question }}</p>
             <p><strong>Topic:</strong> {{ post.topic }}</p>
@@ -19,16 +19,24 @@
             {% endif %}
 
             <!-- Display likes -->
-            <p><strong>Likes:</strong> {{ post.like_count }}</p>
+            <p><strong>Likes:</strong> <span class="like-count">{{ post.like_count }}</span></p>
 
             <!-- Like/Unlike button -->
-            {% if post._id in user_likes %}
-                <form action="{{ url_for('unlike_post', post_id=post._id) }}" method="post">
-                    <input type="submit" value="Unlike">
-                </form>
-            {% else %}
-                <form action="{{ url_for('like_post', post_id=post._id) }}" method="post">
-                    <input type="submit" value="Like">
+            <form class="like-form" method="POST" action="{{ url_for('like_post', post_id=post._id) }}">
+                {{ csrf_token() }}
+                {% if post._id in user_likes %}
+                    <button type="submit" class="like-button" data-action="unlike">Unlike</button>
+                {% else %}
+                    <button type="submit" class="like-button" data-action="like">Like</button>
+                {% endif %}
+            </form>
+
+            <!-- Edit and Delete buttons for user's own posts -->
+            {% if post.id_user == session['user_id'] %}
+                <a href="{{ url_for('edit_post', post_id=post._id) }}">Edit</a>
+                <form class="delete-form" action="{{ url_for('delete_post', post_id=post._id) }}" method="post" style="display:inline;">
+                    {{ csrf_token() }}
+                    <input type="submit" value="Delete">
                 </form>
             {% endif %}
         </li>
@@ -38,7 +46,7 @@
 <h3>Recommended Posts</h3>
 <ul>
     {% for post in recommendations %}
-        <li>
+        <li id="post-{{ post._id }}">
             <h4>{{ post.title }}</h4>
             <p>{{ post.question }}</p>
             <p><strong>Topic:</strong> {{ post.topic }}</p>
@@ -48,21 +56,65 @@
             {% endif %}
 
             <!-- Display likes -->
-            <p><strong>Likes:</strong> {{ post.like_count }}</p>
+            <p><strong>Likes:</strong> <span class="like-count">{{ post.like_count }}</span></p>
 
             <!-- Like/Unlike button -->
-            {% if post._id in user_likes %}
-                <form action="{{ url_for('unlike_post', post_id=post._id) }}" method="post">
-                    <input type="submit" value="Unlike">
-                </form>
-            {% else %}
-                <form action="{{ url_for('like_post', post_id=post._id) }}" method="post">
-                    <input type="submit" value="Like">
-                </form>
-            {% endif %}
+            <form class="like-form" method="POST" action="{{ url_for('like_post', post_id=post._id) }}">
+                {{ csrf_token() }}
+                {% if post._id in user_likes %}
+                    <button type="submit" class="like-button" data-action="unlike">Unlike</button>
+                {% else %}
+                    <button type="submit" class="like-button" data-action="like">Like</button>
+                {% endif %}
+            </form>
         </li>
     {% endfor %}
 </ul>
 
 <p><a href="{{ url_for('create_post') }}">Create a new post</a></p>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Function to handle like/unlike button clicks
+    function handleLikeButtonClick(event) {
+        event.preventDefault();
+        const form = event.target.closest('form');
+        const action = form.querySelector('.like-button').dataset.action;
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': form.querySelector('input[name="csrf_token"]').value
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const likeCountElement = form.closest('li').querySelector('.like-count');
+                likeCountElement.textContent = data.like_count;
+
+                if (action === 'like') {
+                    form.querySelector('.like-button').dataset.action = 'unlike';
+                    form.querySelector('.like-button').textContent = 'Unlike';
+                } else {
+                    form.querySelector('.like-button').dataset.action = 'like';
+                    form.querySelector('.like-button').textContent = 'Like';
+                }
+            } else {
+                alert('Something went wrong. Please try again.');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Attach event listeners to like/unlike buttons
+    const likeButtons = document.querySelectorAll('.like-form .like-button');
+    likeButtons.forEach(button => {
+        button.addEventListener('click', handleLikeButtonClick);
+    });
+});
+</script>
+
 {% endblock %}
