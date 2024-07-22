@@ -15,14 +15,14 @@
     <p>Welcome, {{ profilename }}!</p>
 
     <h3>Recommended Posts</h3>
-    <ul class="list-group rounded px-lg-5">
+    <ul class="list-group rounded">
         {% if not recommendations %}
             <div class="container bg-info-subtle rounded p-4">
                 <p class="m-0"><span>No recommendation posts</span></p>
             </div>
         {% endif %}
         {% for post in recommendations %}
-            <li id="post-{{ post._id }}" class="list-group-item bg-success bg-opacity-10 mb-3 rounded px-lg-5 py-4">
+            <li id="post-{{ post._id }}" class="list-group-item bg-success bg-opacity-10 mb-3 rounded px-4 py-3">
                 <a href="/posts/topic/{{ post.topic }}" class="btn btn-primary py-1 px-2 mb-3" style="--bs-btn-border-color: #a6d765; --bs-btn-hover-border-color: #68b89f; --bs-btn-bg: #a6d765; --bs-btn-hover-bg: #68b89f;"><small>{{ post.topic }}</small></a>
                 
                 <div class="d-flex justify-content-between">
@@ -70,15 +70,16 @@
     </ul>
 
     <h3 class="mt-4">Posts</h3>
-    <ul class="list-group rounded px-lg-5">
+    <ul class="list-group rounded">
         {% if not posts %}
             <div class="container bg-info-subtle rounded p-4">
                 <p class="m-0"><span>No posts</span></p>
             </div>
         {% endif %}
         {% for post in posts %}
-        <li id="post-{{ post._id }}" class="list-group-item bg-success bg-opacity-10 mb-3 rounded px-lg-5 py-4">
+        <li id="post-{{ post._id }}" class="list-group-item bg-success bg-opacity-10 mb-3 rounded px-4 py-3">
             <a href="/posts/topic/{{ post.topic }}" class="btn btn-primary py-1 px-2 mb-3" style="--bs-btn-border-color: #a6d765; --bs-btn-hover-border-color: #68b89f; --bs-btn-bg: #a6d765; --bs-btn-hover-bg: #68b89f;"><small>{{ post.topic }}</small></a>
+            
             <div class="d-flex justify-content-between">
                 
                 <h4>{{ post.title }}</h4>
@@ -104,13 +105,13 @@
         
             <p class="text-secondary"><small>Published at {{ post.date }}</small></p>
             <p class="px-lg-4 justify-pre-wrap">{{ post.question }}</p>
-           
-            
+         
             {% if post.post_pic %}
                 <img src="{{ url_for('static', filename='uploads/post/img/' + post.post_pic) }}" alt="Post Picture" id="post-image" class="img-fluid mb-2 rounded object-fit-cover w-100" style="height: 300px;">
             {% endif %}
             <!-- Like/Unlike button -->
             <form class="like-form d-flex justify-content-end" method="POST" action="#">
+                
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <p class="text-danger my-auto like-count" style="font-weight: 700;">{{ post.like_count }}</p>
                 {% if post._id in user_likes %}

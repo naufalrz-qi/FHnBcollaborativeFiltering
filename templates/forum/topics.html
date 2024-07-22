@@ -1,0 +1,89 @@
+{% extends "layouts/base_normal.html" %}
+{% block style %}
+    <style>
+        .dropdown-toggle::after {
+            display: none !important;
+        }
+        .topic-item {
+            border-radius: 5px;
+            text-align: left; /* added this line to align text to the left */
+            transition: background-color 0.3s;
+        }
+        .topic-item a{
+            text-align: left; /* added this line to align text to the left */
+   
+        }
+    </style>
+{% endblock %}
+
+{% block title %}Topics{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Topics</h2>
+
+    <div class="row">
+        {% if not topics %}
+            <div class="col-12">
+                <div class="container bg-info-subtle rounded p-4">
+                    <p class="m-0"><span>No topics available</span></p>
+                </div>
+            </div>
+        {% else %}
+            {% set column1 = [] %}
+            {% set column2 = [] %}
+            {% set column3 = [] %}
+            {% set column4 = [] %}
+
+            {% for topic in topics %}
+                {% if loop.index % 4 == 1 %}
+                    {% set _ = column1.append(topic) %}
+                {% elif loop.index % 4 == 2 %}
+                    {% set _ = column2.append(topic) %}
+                {% elif loop.index % 4 == 3 %}
+                    {% set _ = column3.append(topic) %}
+                {% else %}
+                    {% set _ = column4.append(topic) %}
+                {% endif %}
+            {% endfor %}
+
+            <div class="col-md-3">
+                {% for topic in column1 %}
+                    <div class="topic-item" style="margin: 0;"> <!-- removed margin -->
+                        <a href="{{ url_for('posts_by_topic_route', topic_name=topic['name']) }}" class="btn btn-link w-100">
+                            {{ topic['name'] }}
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                {% for topic in column2 %}
+                    <div class="topic-item" style="margin: 0;"> <!-- removed margin -->
+                        <a href="{{ url_for('posts_by_topic_route', topic_name=topic['name']) }}" class="btn btn-link w-100">
+                            {{ topic['name'] }}
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                {% for topic in column3 %}
+                    <div class="topic-item" style="margin: 0;"> <!-- removed margin -->
+                        <a href="{{ url_for('posts_by_topic_route', topic_name=topic['name']) }}" class="btn btn-link w-100">
+                            {{ topic['name'] }}
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                {% for topic in column4 %}
+                    <div class="topic-item" style="margin: 0;"> <!-- removed margin -->
+                        <a href="{{ url_for('posts_by_topic_route', topic_name=topic['name']) }}" class="btn btn-link w-100">
+                            {{ topic['name'] }}
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

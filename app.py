@@ -97,6 +97,14 @@ def unlike_post(post_id):
 def posts_by_topic_route(topic_name):
     return posts_by_topic(topic_name)
 
+@app.route('/topics')
+def topics():
+    if 'username' not in session:
+        return redirect(url_for('index'))
+    
+    topics = list(topics_collection.find())
+    return render_template('forum/topics.html', topics=topics)
+
 if __name__ == '__main__':
     ensure_admin_exists()
     app.run(debug=True)
