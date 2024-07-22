@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container bg-white rounded shadow p-5">
     <h2>Edit Post</h2>
 
     {% with messages = get_flashed_messages() %}
@@ -78,7 +78,7 @@
             {% endif %}
         </div>
 
-        <button type="submit" class="btn btn-primary">Update Post</button>
+        <button type="submit" class="btn btn-success">Update Post</button>
     </form>
 </div>
 {% endblock %}

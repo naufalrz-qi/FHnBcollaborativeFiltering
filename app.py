@@ -97,11 +97,28 @@ def unlike_post(post_id):
 def posts_by_topic_route(topic_name):
     return posts_by_topic(topic_name)
 
-@app.route('/topics')
-def topics():
+@app.route('/post/<post_id>')
+def post_detail(post_id):
     if 'username' not in session:
         return redirect(url_for('index'))
-    
+
+    post = posts_collection.find_one({"_id": ObjectId(post_id)})
+    if not post:
+        flash("Post not found", "danger")
+        return redirect(url_for('forum'))
+
+    post['like_count'] = likes_collection.count_documents({"post_id": post_id})
+    post['_id'] = str(post['_id'])  # Ensure _id is a string
+
+    user_likes = set(str(like['post_id']) for like in likes_collection.find({"user_id": session.get('user_id')}))
+    user = users_collection.find_one({'_id': ObjectId(post['id_user'])})
+    profilename = user['profile_name']
+
+    return render_template('posts/details_post.html', post=post, profilename=profilename, user_likes=user_likes)
+
+
+@app.route('/topics')
+def topics():
     topics = list(topics_collection.find())
     return render_template('forum/topics.html', topics=topics)
 

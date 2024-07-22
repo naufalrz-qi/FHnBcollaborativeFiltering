@@ -14,6 +14,7 @@ def posts_by_topic(topic_name):
         return redirect(url_for('index'))
     
     user_id = session.get('user_id')
+    topics = list(topics_collection.find())
     user_likes = set(str(like['post_id']) for like in likes_collection.find({"user_id": user_id}))
     posts = list(posts_collection.find({"topic": topic_name}).sort("date", -1))
     print(posts)
@@ -25,7 +26,7 @@ def posts_by_topic(topic_name):
         post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
     # Temukan semua post yang sesuai dengan topik yang diberikan
     recommendations = load_recommendations_by_topic(user_id, topic_name)
-    return render_template('forum/forum.html', posts=posts,profilename=profilename, user_likes=user_likes, recommendations=recommendations)
+    return render_template('forum/forum.html', posts=posts,profilename=profilename,topics=topics, user_likes=user_likes, recommendations=recommendations)
 
 
 def post_create(path, allowedFile):
@@ -91,7 +92,15 @@ def post_edit(post_id, path, allowedFile):
         title = request.form['title']
         question = request.form['question']
         topic = request.form['topic']
+        remove_pic = 'remove_pic' in request.form and request.form['remove_pic'] == 'on'
         post_pic = post.get('post_pic', '')  # Keep the old picture by default
+
+        if remove_pic:
+            post_pic = ''
+            if post_pic:
+                old_image_path = os.path.join(path, post_pic)
+                if os.path.exists(old_image_path):
+                    os.remove(old_image_path)
 
         # Handle file upload
         if 'post_pic' in request.files:

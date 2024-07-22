@@ -13,14 +13,20 @@
 <body class="bg-success bg-gradient">
     {% if 'username' in session %}
     {% include 'layouts/components/header.html' %}
+ 
+        
+    {% else %}
+    {% include 'layouts/components/header-guest.html' %}
+        
+  
     {% endif %}
 
-    <main class="container mt-4">
-        <div class="shadow rounded p-3 bg-white">
+    <main class="p-5">
+  
             {% block content %}
             <!-- Main content will be injected here -->
             {% endblock %}
-        </div>
+ 
     </main>
 
     {% include 'layouts/components/footer.html' %}
