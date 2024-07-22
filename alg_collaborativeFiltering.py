@@ -78,9 +78,13 @@ def train_model():
     
         for similar_user in similar_users:
             post_scores += sim_scores[similar_user] * ratings_matrix[similar_user]
+            print('post score: ', post_scores)
+            print('------------------------------------------------------')
 
-        post_scores[ratings_matrix[user_idx] > 1] = 1
-        print('post score: ', post_scores)
+        print('post score rate: ',  post_scores[ratings_matrix[user_idx] > 0])
+        print('------------------------------------------------------')
+        post_scores[ratings_matrix[user_idx] > 0] = 0
+        print('post score filter: ',  post_scores[ratings_matrix[user_idx] > 0])
         print('------------------------------------------------------')
         recommended_post_indices = np.argsort(post_scores)[::-1][:num_recommendations]
         return recommended_post_indices
@@ -94,7 +98,7 @@ def train_model():
     # Generate recommendations for all users and save to a dictionary
     recommendations = {}
     for user_id_str, user_idx in user_ids.items():
-        recommended_posts = recommend_posts(user_idx, num_recommendations=10)
+        recommended_posts = recommend_posts(user_idx, num_recommendations=5)
         print('------------------------------------------------------')
         print('recommended posts: ', recommended_posts)
         print('------------------------------------------------------')

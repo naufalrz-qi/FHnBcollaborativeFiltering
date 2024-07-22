@@ -1,4 +1,11 @@
 {% extends "layouts/base_normal.html" %}
+{% block style %}
+    <style>
+        .dropdown-toggle::after {
+            display: none !important;
+        }
+    </style>
+{% endblock %}
 
 {% block title %}Forum{% endblock %}
 
@@ -8,70 +15,113 @@
     <p>Welcome, {{ profilename }}!</p>
 
     <h3>Recommended Posts</h3>
-    <ul class="list-group rounded">
+    <ul class="list-group rounded px-lg-5">
+        {% if not recommendations %}
+            <div class="container bg-info-subtle rounded p-4">
+                <p class="m-0"><span>No recommendation posts</span></p>
+            </div>
+        {% endif %}
         {% for post in recommendations %}
-            <li id="post-{{ post._id }}" class="list-group-item bg-success bg-opacity-10 mb-3 rounded p-5">
-                <h4>{{ post.title }}</h4>
-                <p>{{ post.question }}</p>
-                <p><strong>Topic:</strong> {{ post.topic }}</p>
-                <p><strong>Date:</strong> {{ post.date }}</p>
-                {% if post.post_pic %}
-                    <img src="{{ url_for('static', filename='post_pics/' + post.post_pic) }}" alt="Post Picture" class="img-fluid mb-2">
-                {% endif %}
-
-
-                <!-- Like/Unlike button -->
-                <form class="like-form" method="POST" action="#">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <li id="post-{{ post._id }}" class="list-group-item bg-success bg-opacity-10 mb-3 rounded px-lg-5 py-4">
+                <a href="/posts/topic/{{ post.topic }}" class="btn btn-primary py-1 px-2 mb-3" style="--bs-btn-border-color: #a6d765; --bs-btn-hover-border-color: #68b89f; --bs-btn-bg: #a6d765; --bs-btn-hover-bg: #68b89f;"><small>{{ post.topic }}</small></a>
+                
+                <div class="d-flex justify-content-between">
                     
+                    <h4>{{ post.title }}</h4>
+                    
+                    <div class="dropdown">
+                        <button class="btn bg-transparent border-0 dropdown-toggle" type="button" id="postOptions-{{ post._id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span style="font-weight: 900;">▪️▪️▪️</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postOptions-{{ post._id }}">
+                            <li><a class="dropdown-item" href="#    ">Details</a></li>
+                            {% if post.id_user == session['user_id'] %}
+                                <li><a class="dropdown-item" href="{{ url_for('edit_post', post_id=post._id) }}">Edit</a></li>
+                                <li>
+                                    <form method="POST" action="{{ url_for('delete_post', post_id=post._id) }}" style="display: inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="dropdown-item">Delete</button>
+                                    </form>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            
+                <p class="text-secondary"><small>Published at {{ post.date }}</small></p>
+                <p class="px-lg-4 justify-pre-wrap">{{ post.question }}</p>
+             
+                {% if post.post_pic %}
+                    <img src="{{ url_for('static', filename='uploads/post/img/' + post.post_pic) }}" alt="Post Picture" id="post-image" class="img-fluid mb-2 rounded object-fit-cover w-100" style="height: 300px;">
+                {% endif %}
+                <!-- Like/Unlike button -->
+                <form class="like-form d-flex justify-content-end" method="POST" action="#">
+                    
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <p class="text-danger my-auto like-count" style="font-weight: 700;">{{ post.like_count }}</p>
                     {% if post._id in user_likes %}
-                        <button type="button" class="btn btn-outline-danger like-button" data-action="unlike" data-post-id="{{ post._id }}">❤️</button>
+                        <button type="button" class="btn bg-transparent like-button border-0" data-action="unlike" data-post-id="{{ post._id }}">❤️</button>
                     {% else %}
-                        <button type="button" class="btn btn-outline-secondary like-button" data-action="like" data-post-id="{{ post._id }}">🤍</button>
+                        <button type="button" class="btn bg-transparent like-button border-0" data-action="like" data-post-id="{{ post._id }}">🤍</button>
                     {% endif %}
-                    <span style="font-weight: 700;">{{ post.like_count }}</span>
                 </form>
             </li>
         {% endfor %}
     </ul>
 
     <h3 class="mt-4">Posts</h3>
-    <ul class="list-group rounded">
+    <ul class="list-group rounded px-lg-5">
+        {% if not posts %}
+            <div class="container bg-info-subtle rounded p-4">
+                <p class="m-0"><span>No posts</span></p>
+            </div>
+        {% endif %}
         {% for post in posts %}
-            <li id="post-{{ post._id }}" class="list-group-item bg-success bg-opacity-10 mb-3 rounded p-5">
+        <li id="post-{{ post._id }}" class="list-group-item bg-success bg-opacity-10 mb-3 rounded px-lg-5 py-4">
+            <a href="/posts/topic/{{ post.topic }}" class="btn btn-primary py-1 px-2 mb-3" style="--bs-btn-border-color: #a6d765; --bs-btn-hover-border-color: #68b89f; --bs-btn-bg: #a6d765; --bs-btn-hover-bg: #68b89f;"><small>{{ post.topic }}</small></a>
+            <div class="d-flex justify-content-between">
+                
                 <h4>{{ post.title }}</h4>
-                <p>{{ post.question }}</p>
-                <p><strong>Topic:</strong> {{ post.topic }}</p>
-                <p><strong>Date:</strong> {{ post.date }}</p>
-                {% if post.post_pic %}
-                    <img src="{{ url_for('static', filename='post_pics/' + post.post_pic) }}" alt="Post Picture" class="img-fluid mb-2">
+                
+                <div class="dropdown">
+                    <button class="btn bg-transparent border-0 dropdown-toggle" type="button" id="postOptions-{{ post._id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span style="font-weight: 900;">▪️▪️▪️</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postOptions-{{ post._id }}">
+                        <li><a class="dropdown-item" href="#    ">Details</a></li>
+                        {% if post.id_user == session['user_id'] %}
+                            <li><a class="dropdown-item" href="{{ url_for('edit_post', post_id=post._id) }}">Edit</a></li>
+                            <li>
+                                <form method="POST" action="{{ url_for('delete_post', post_id=post._id) }}" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="dropdown-item">Delete</button>
+                                </form>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        
+            <p class="text-secondary"><small>Published at {{ post.date }}</small></p>
+            <p class="px-lg-4 justify-pre-wrap">{{ post.question }}</p>
+           
+            
+            {% if post.post_pic %}
+                <img src="{{ url_for('static', filename='uploads/post/img/' + post.post_pic) }}" alt="Post Picture" id="post-image" class="img-fluid mb-2 rounded object-fit-cover w-100" style="height: 300px;">
+            {% endif %}
+            <!-- Like/Unlike button -->
+            <form class="like-form d-flex justify-content-end" method="POST" action="#">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <p class="text-danger my-auto like-count" style="font-weight: 700;">{{ post.like_count }}</p>
+                {% if post._id in user_likes %}
+                    <button type="button" class="btn bg-transparent like-button border-0" data-action="unlike" data-post-id="{{ post._id }}">❤️</button>
+                {% else %}
+                    <button type="button" class="btn bg-transparent like-button border-0" data-action="like" data-post-id="{{ post._id }}">🤍</button>
                 {% endif %}
-
-                <!-- Like/Unlike button -->
-                <form class="like-form" method="POST" action="#">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    
-                    {% if post._id in user_likes %}
-                        <button type="button" class="btn btn-outline-danger like-button" data-action="unlike" data-post-id="{{ post._id }}">❤️</button>
-                    {% else %}
-                        <button type="button" class="btn btn-outline-secondary like-button" data-action="like" data-post-id="{{ post._id }}">🤍</button>
-                    {% endif %}
-                    {{ post.like_count }}
-                </form>
-
-                <!-- Edit and Delete buttons for user's own posts -->
-                {% if post.id_user == session['user_id'] %}
-                    <a href="{{ url_for('edit_post', post_id=post._id) }}" class="btn btn-warning btn-sm me-2">Edit</a>
-                    <form class="delete-form d-inline" action="{{ url_for('delete_post', post_id=post._id) }}" method="post">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input type="submit" value="Delete" class="btn btn-danger btn-sm">
-                    </form>
-                {% endif %}
-            </li>
+            </form>
+        </li>
         {% endfor %}
     </ul>
-
-    <p class="mt-4"><a href="{{ url_for('create_post') }}" class="btn btn-primary">Create a new post</a></p>
 </div>
 {% endblock %}
 
@@ -79,6 +129,21 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
+    var isExpanded = false;
+    $('#post-image').click(function() {
+        if (isExpanded) {
+            $(this).removeClass('img-expanded').css({
+                width: '100%',
+                height: '300px'
+            });
+        } else {
+            $(this).addClass('img-expanded').css({
+                width: 'auto',
+                height: 'auto'
+            });
+        }
+        isExpanded = !isExpanded;
+    });
     // Function to handle like/unlike button clicks
     $('.like-button').click(function() {
         var button = $(this);

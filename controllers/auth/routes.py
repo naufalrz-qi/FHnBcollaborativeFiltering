@@ -10,9 +10,12 @@ def auth_login():
         username = request.form['username'].lower()  # Convert to lowercase
         password = request.form['password']
         user = users_collection.find_one({"username": username})
-
+        print(user)
         if user and bcrypt.checkpw(password.encode('utf-8'), user['password']):
             session['username'] = username
+            session['name'] = user['profile_name']
+            session['photo'] = user['profile_pic']
+            session['role'] = user['role']
             session['user_id'] = str(user['_id'])  # Store user ID in session
             return redirect(url_for('forum'))
         else:
@@ -67,6 +70,5 @@ def auth_register():
     return render_template('auth/register.html')
 
 def auth_logout():
-    session.pop('username', None)
-    session.pop('user_id', None)
+    session.clear()
     return redirect(url_for('index'))

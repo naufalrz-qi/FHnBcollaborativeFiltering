@@ -9,8 +9,9 @@ from flask_wtf.csrf import CSRFProtect
 from datetime import datetime
 from alg_collaborativeFiltering import train_model
 from validation import validate_phone_number, is_unique, ensure_admin_exists  # Import the validation functions
-from controllers.posts.routes import post_create, post_delete, post_like, post_unlike, post_edit
+from controllers.posts.routes import post_create, post_delete, post_like, post_unlike, post_edit, posts_by_topic
 from controllers.auth.routes import auth_login, auth_logout, auth_register
+from controllers.algorithm.routes import load_recommendations
 
 # Load environment variables from .env file
 load_dotenv()
@@ -29,20 +30,9 @@ posts_collection = db['posts']
 topics_collection = db['topics']
 likes_collection = db['likes']
 
-def load_recommendations(user_id):
-    with open('recommendations.json', 'r') as file:
-        recommendations_data = json.load(file)
-    # Ambil rekomendasi untuk user saat ini
-    recommended_post_ids = recommendations_data.get(str(user_id), [])
-    # Ambil informasi postingan dari database
-    recommended_posts = []
-    for post_id in recommended_post_ids:
-        post = posts_collection.find_one({"_id": ObjectId(post_id)})
-        if post:
-            post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
-            post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
-            recommended_posts.append(post)
-    return recommended_posts
+app.config['UPLOAD_FOLDER'] = 'static/uploads/post/img'
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
+
 
 @app.route('/')
 def index():
@@ -68,7 +58,7 @@ def forum():
         return redirect(url_for('index'))
 
     user_id = session.get('user_id')
-    posts = list(posts_collection.find())
+    posts = list(posts_collection.find().sort("date", -1))
     topics = list(topics_collection.find())
     
     # Kumpulkan semua likes dari pengguna yang sedang login
@@ -85,7 +75,7 @@ def forum():
 
 @app.route('/create_post', methods=['GET', 'POST'])
 def create_post():
-    return post_create()
+    return post_create(app.config['UPLOAD_FOLDER'], app.config['ALLOWED_EXTENSIONS'])
 
 @app.route('/delete_post/<post_id>', methods=['POST'])
 def delete_post(post_id):
@@ -93,7 +83,7 @@ def delete_post(post_id):
 
 @app.route('/edit_post/<post_id>', methods=['GET', 'POST'])
 def edit_post(post_id):
-    return post_edit(post_id)
+    return post_edit(post_id,app.config['UPLOAD_FOLDER'], app.config['ALLOWED_EXTENSIONS'])
 
 @app.route('/like_post/<post_id>', methods=['POST'])
 def like_post(post_id):
@@ -102,6 +92,10 @@ def like_post(post_id):
 @app.route('/unlike_post/<post_id>', methods=['POST'])
 def unlike_post(post_id):
     return post_unlike(post_id)
+
+@app.route('/posts/topic/<topic_name>')
+def posts_by_topic_route(topic_name):
+    return posts_by_topic(topic_name)
 
 if __name__ == '__main__':
     ensure_admin_exists()

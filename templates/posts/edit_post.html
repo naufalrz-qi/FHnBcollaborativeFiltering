@@ -2,10 +2,29 @@
 
 {% block title %}Edit Post{% endblock %}
 
-{% block content %}
-<h2>Edit Post</h2>
+{% block style %}
+<style>
+    .flashes {
+        list-style-type: none;
+        padding: 0;
+    }
+    .flashes li {
+        color: red;
+    }
+    #post_pic_preview {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
 
-{% with messages = get_flashed_messages() %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Post</h2>
+
+    {% with messages = get_flashed_messages() %}
     {% if messages %}
         <ul class="flashes">
             {% for message in messages %}
@@ -13,45 +32,58 @@
             {% endfor %}
         </ul>
     {% endif %}
-{% endwith %}
+    {% endwith %}
 
-<form method="post" action="{{ url_for('edit_post', post_id=post._id) }}" enctype="multipart/form-data">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <form method="post" action="{{ url_for('edit_post', post_id=post._id) }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
+        <div class="mb-3">
+            <label for="title" class="form-label">Title:</label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ post.title }}" required>
+        </div>
 
-    <label for="title">Title:</label>
-    <input type="text" id="title" name="title" value="{{ post.title }}" required><br>
+        <div class="mb-3">
+            <label for="question" class="form-label">Question:</label>
+            <textarea class="form-control" id="question" name="question" rows="3" required>{{ post.question }}</textarea>
+        </div>
 
-    <label for="question">Question:</label>
-    <textarea id="question" name="question" required>{{ post.question }}</textarea><br>
+        <div class="mb-3">
+            <label for="topic" class="form-label">Topic:</label>
+            <select class="form-select" id="topic" name="topic" required>
+                {% if not topics %}
+                    <option value="new_topic">Create a new topic</option>
+                {% else %}
+                    {% for topic in topics %}
+                        <option value="{{ topic.name }}" {% if topic.name == post.topic %}selected{% endif %}>{{ topic.name }}</option>
+                    {% endfor %}
+                    <option value="new_topic">Other</option>
+                {% endif %}
+            </select>
+        </div>
 
-    <label for="topic">Topic:</label>
-    <select id="topic" name="topic">
-        {% if not topics %}
-            <option value="new_topic">Create a new topic</option>
-        {% else %}
-            {% for topic in topics %}
-                <option value="{{ topic.name }}" {% if topic.name == post.topic %}selected{% endif %}>{{ topic.name }}</option>
-            {% endfor %}
-            <option value="new_topic">Other</option>
-        {% endif %}
-    </select><br>
+        <div id="new_topic_div" class="mb-3" style="display: none;">
+            <label for="new_topic" class="form-label">New Topic:</label>
+            <input type="text" class="form-control" id="new_topic" name="new_topic">
+        </div>
+        
+        <div class="mb-3">
+            <label for="post_pic" class="form-label">Post Picture (optional):</label>
+            <input type="file" class="form-control" id="post_pic" name="post_pic" onchange="previewImage(this)">
+            {% if post.post_pic %}
+                <img id="post_pic_preview" src="{{ url_for('static', filename='uploads/post/img/' + post.post_pic) }}" alt="Post Picture" style="height: 300px;;">
+                <div class="form-check mt-2">
+                    <input type="checkbox" class="form-check-input" id="remove_pic" name="remove_pic">
+                    <label class="form-check-label" for="remove_pic">Remove Picture</label>
+                </div>
+            {% endif %}
+        </div>
 
-    <div id="new_topic_div" style="display: none;">
-        <label for="new_topic">New Topic:</label>
-        <input type="text" id="new_topic" name="new_topic"><br>
-    </div>
+        <button type="submit" class="btn btn-primary">Update Post</button>
+    </form>
+</div>
+{% endblock %}
 
-    <label for="post_pic">Post Picture (optional):</label>
-    <input type="file" id="post_pic" name="post_pic"><br>
-    {% if post.post_pic %}
-        <img src="{{ url_for('static', filename='post_pics/' + post.post_pic) }}" alt="Post Picture"><br>
-        <input type="checkbox" id="remove_pic" name="remove_pic"> Remove Picture
-    {% endif %}
-
-    <input type="submit" value="Update Post">
-</form>
-
+{% block script %}
 <script>
     function toggleNewTopicDiv() {
         var newTopicDiv = document.getElementById('new_topic_div');
@@ -63,6 +95,20 @@
         }
     }
     
+    function previewImage(input) {
+        var preview = document.getElementById('post_pic_preview');
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+
     // Add event listener to the topic dropdown
     document.getElementById('topic').addEventListener('change', toggleNewTopicDiv);
     

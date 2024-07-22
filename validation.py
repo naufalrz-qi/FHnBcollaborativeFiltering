@@ -20,6 +20,9 @@ def is_unique(field, value, collection):
     """Check if value is unique in a given field within a specified collection."""
     return collection.count_documents({field: value}) == 0
 
+def allowed_file(filename, allowedExtensions):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowedExtensions
+
 def ensure_admin_exists():
     """Ensure that there is at least one admin user."""
     admin_user = users_collection.find_one({"role": "admin"})

@@ -12,9 +12,19 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('create_post') }}">Create Post</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-                </li>
+                 
+            </ul>
+            <a class="ms-lg-3 dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {% if session.get('photo') and session.get('photo') != '' %}
+                    <img src="{{ url_for('static', filename='uploads/profile_pics/' + session.get('photo')) }}" alt="Profile Picture" class="rounded-circle">
+                {% else %}
+                    <img src="{{ url_for('static', filename='uploads/profile_pics/default.jpg') }}" alt="Default Profile Picture" class="rounded-circle" style="height: auto; width: 40px;">
+                {% endif %}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item" href="#">Profile</a></li>
+                <li><a class="dropdown-item" href="#">Settings</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
             </ul>
         </div>
     </div>

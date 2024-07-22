@@ -1,4 +1,18 @@
         body {
             padding-top: 6rem !important;
+            font-family: 'Times New Roman', Times, serif !important;
+        }
+
+        .justify-pre-wrap {
+            text-align: justify;
+            white-space: pre-wrap;
+        }
+
+        .img-fluid {
+            transition: all 0.3s ease;
+        }
+        .img-expanded {
+            width: auto !important;
+            height: auto !important;
         }
         

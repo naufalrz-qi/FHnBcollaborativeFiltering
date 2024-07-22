@@ -2,51 +2,83 @@
 
 {% block title %}Create Post{% endblock %}
 
+{% block style %}
+<style>
+    .flashes {
+        list-style-type: none;
+        padding: 0;
+    }
+    .flashes li {
+        color: red;
+    }
+    #post_pic_preview {
+        display: none;
+        max-width: 100%;
+        height: auto;
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h2>Create a New Post</h2>
+<div class="container mt-5">
+    <h2>Create a New Post</h2>
 
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul class="flashes">
-            {% for message in messages %}
-                <li>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-{% endwith %}
-
-<form method="post" action="{{ url_for('create_post') }}" enctype="multipart/form-data">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-    <label for="title">Title:</label>
-    <input type="text" id="title" name="title" required value="{{ request.form.title }}"><br>
-
-    <label for="question">Question:</label>
-    <textarea id="question" name="question" required>{{ request.form.question }}</textarea><br>
-
-    <label for="topic">Topic:</label>
-    <select id="topic" name="topic">
-        {% if not topics %}
-            <option value="new_topic">Create a new topic</option>
-        {% else %}
-            {% for topic in topics %}
-                <option value="{{ topic.name }}" {% if request.form.topic == topic.name %}selected{% endif %}>{{ topic.name }}</option>
-            {% endfor %}
-            <option value="new_topic" {% if request.form.topic == 'new_topic' %}selected{% endif %}>Other</option>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
         {% endif %}
-    </select><br>
+    {% endwith %}
 
-    <div id="new_topic_div" style="display: none;">
-        <label for="new_topic">New Topic:</label>
-        <input type="text" id="new_topic" name="new_topic" value="{{ request.form.new_topic }}"><br>
-    </div>
+    <form method="post" action="{{ url_for('create_post') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <label for="post_pic">Post Picture (optional):</label>
-    <input type="file" id="post_pic" name="post_pic"><br>
+        <div class="mb-3">
+            <label for="title" class="form-label">Title:</label>
+            <input type="text" class="form-control" id="title" name="title" required value="{{ request.form.title }}">
+        </div>
 
-    <input type="submit" value="Create Post">
-</form>
+        <div class="mb-3">
+            <label for="question" class="form-label">Question:</label>
+            <textarea class="form-control" id="question" name="question" required>{{ request.form.question }}</textarea>
+        </div>
 
+        <div class="mb-3">
+            <label for="topic" class="form-label">Topic:</label>
+            <select class="form-select" id="topic" name="topic">
+                {% if not topics %}
+                    <option value="new_topic">Create a new topic</option>
+                {% else %}
+                    {% for topic in topics %}
+                        <option value="{{ topic.name }}" {% if request.form.topic == topic.name %}selected{% endif %}>{{ topic.name }}</option>
+                    {% endfor %}
+                    <option value="new_topic" {% if request.form.topic == 'new_topic' %}selected{% endif %}>Other</option>
+                {% endif %}
+            </select>
+        </div>
+
+        <div id="new_topic_div" class="mb-3" style="display: none;">
+            <label for="new_topic" class="form-label">New Topic:</label>
+            <input type="text" class="form-control" id="new_topic" name="new_topic" value="{{ request.form.new_topic }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="post_pic" class="form-label">Post Picture (optional):</label>
+            <input type="file" class="form-control" id="post_pic" name="post_pic">
+            <img id="post_pic_preview" src="#" alt="Post Picture Preview" style="height: 300px;">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Post</button>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block script %}
 <script>
     function toggleNewTopicDiv() {
         var newTopicDiv = document.getElementById('new_topic_div');
@@ -57,10 +89,24 @@
             newTopicDiv.style.display = 'none';
         }
     }
-    
-    // Add event listener to the topic dropdown
+
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var preview = document.getElementById('post_pic_preview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     document.getElementById('topic').addEventListener('change', toggleNewTopicDiv);
-    
+    document.getElementById('post_pic').addEventListener('change', function () {
+        readURL(this);
+    });
+
     // Initial check when the page loads
     toggleNewTopicDiv();
 </script>
