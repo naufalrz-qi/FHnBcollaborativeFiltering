@@ -191,3 +191,4 @@ def post_unlike(post_id):
         return jsonify({"success": True, "like_count": post['like_count']}), 200
     else:
         return jsonify({"success": False, "message": "Post not liked yet"}), 400
+    

@@ -10,6 +10,7 @@ from datetime import datetime
 from alg_collaborativeFiltering import train_model
 from validation import validate_phone_number, is_unique, ensure_admin_exists  # Import the validation functions
 from controllers.posts.routes import post_create, post_delete, post_like, post_unlike, post_edit, posts_by_topic
+from controllers.answers.routes import answer_create
 from controllers.auth.routes import auth_login, auth_logout, auth_register
 from controllers.algorithm.routes import load_recommendations
 
@@ -27,10 +28,12 @@ client = MongoClient(mongo_uri)
 db = client['collaborativefilteringtest']
 users_collection = db['users']
 posts_collection = db['posts']
+answers_collection = db['answers']
 topics_collection = db['topics']
 likes_collection = db['likes']
 
-app.config['UPLOAD_FOLDER'] = 'static/uploads/post/img'
+app.config['UPLOAD_POST'] = 'static/uploads/post/img'
+app.config['UPLOAD_ANSWER'] = 'static/uploads/answer/img'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 
 
@@ -75,7 +78,7 @@ def forum():
 
 @app.route('/create_post', methods=['GET', 'POST'])
 def create_post():
-    return post_create(app.config['UPLOAD_FOLDER'], app.config['ALLOWED_EXTENSIONS'])
+    return post_create(app.config['UPLOAD_POST'], app.config['ALLOWED_EXTENSIONS'])
 
 @app.route('/delete_post/<post_id>', methods=['POST'])
 def delete_post(post_id):
@@ -83,7 +86,7 @@ def delete_post(post_id):
 
 @app.route('/edit_post/<post_id>', methods=['GET', 'POST'])
 def edit_post(post_id):
-    return post_edit(post_id,app.config['UPLOAD_FOLDER'], app.config['ALLOWED_EXTENSIONS'])
+    return post_edit(post_id,app.config['UPLOAD_POST'], app.config['ALLOWED_EXTENSIONS'])
 
 @app.route('/like_post/<post_id>', methods=['POST'])
 def like_post(post_id):
@@ -102,6 +105,7 @@ def post_detail(post_id):
     if 'username' not in session:
         return redirect(url_for('index'))
 
+    answers = list(answers_collection.find({"post_id": post_id}).sort("date", -1))
     post = posts_collection.find_one({"_id": ObjectId(post_id)})
     if not post:
         flash("Post not found", "danger")
@@ -109,18 +113,24 @@ def post_detail(post_id):
 
     post['like_count'] = likes_collection.count_documents({"post_id": post_id})
     post['_id'] = str(post['_id'])  # Ensure _id is a string
-
+    for answer in answers:
+        user_answer = users_collection.find_one({"_id": ObjectId(answer['user_id'])})
+        answer['username'] = user_answer['username']
     user_likes = set(str(like['post_id']) for like in likes_collection.find({"user_id": session.get('user_id')}))
     user = users_collection.find_one({'_id': ObjectId(post['id_user'])})
     profilename = user['profile_name']
 
-    return render_template('posts/details_post.html', post=post, profilename=profilename, user_likes=user_likes)
+    return render_template('posts/details_post.html', post=post,answers=answers, profilename=profilename, user_likes=user_likes)
 
 
 @app.route('/topics')
 def topics():
     topics = list(topics_collection.find())
     return render_template('forum/topics.html', topics=topics)
+
+@app.route('/answer_post/<post_id>', methods=['POST'])
+def answer_post(post_id):
+    return answer_create(post_id,app.config['UPLOAD_ANSWER'], app.config['ALLOWED_EXTENSIONS'] )
 
 if __name__ == '__main__':
     ensure_admin_exists()

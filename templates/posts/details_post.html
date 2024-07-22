@@ -10,6 +10,15 @@
             max-height: 500px;
             object-fit: cover;
         }
+
+        .answer-img {
+            display: none;
+        }
+        .see-attachment {
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: underline;
+        }
     </style>
 {% endblock %}
 
@@ -42,6 +51,51 @@
         {% endif %}
     </form>
 </div>
+<!-- Answer Section -->
+<div class="container shadow bg-light rounded p-5 mt-4">
+     <!-- Answer Form -->
+     <form id="answer-form" action="{{ url_for('answer_post', post_id=post._id) }}" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div class="form-group">
+            <textarea class="form-control" name="answer" placeholder="Your answer" required></textarea>
+        </div>
+        <div class="form-group mt-2">
+            <label for="answer_pic">Attach a picture (optional):</label>
+            <input type="file" name="answer_pic" class="form-control-file" id="answer_pic">
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Post Answer</button>
+    </form>
+</div>
+<div class="container shadow bg-light rounded p-5 mt-4">
+    <h3>Answers</h3>
+    <div id="answers-container">
+        {% for answer in answers %}
+            <div class="answer border-bottom mb-3 bg-success-subtle rounded p-4">
+                <small class="text-secondary">Answered by {{ answer.username }} on {{ answer.date }}</small>
+                <p class="mb-1">{{ answer.content }}</p>
+                
+                {% if answer.answer_pic %}
+
+                    <p class="see-attachment" onclick="toggleImage(this)">See attachment</p>
+                    <img id="img-{{ answer._id }}" src="{{ url_for('static', filename='uploads/answer/img/' + answer.answer_pic) }}" alt="Answer Picture" class="img-fluid mb-3 rounded answer-img" data-answer-id="{{ answer._id }}" style="height: 200px;">
+                {% endif %}
+                
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal for image display -->
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true" style="--bs-modal-width: 80%;">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-body">
+          <img id="modal-image" src="" class="img-fluid" alt="Answer Picture">
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block script %}
@@ -77,6 +131,56 @@ $(document).ready(function() {
                 alert('Something went wrong. Please try again.');
             }
         });
+    });
+
+    // Function to handle answer form submission
+    $('#answer-form').submit(function(event) {
+        event.preventDefault();
+        var formData = new FormData(this);
+
+        $.ajax({
+            type: 'POST',
+            url: $(this).attr('action'),
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                console.log(response)
+                if (response.success) {
+                    // Append new answer to the container
+                    var newAnswer = `
+                        <div class="answer border-bottom mb-3 bg-success-subtle rounded p-4">
+                            <small class="text-secondary">Answered by ${response.answer.username} on ${response.answer.date}</small>
+                            <p>${response.answer.content}</p>
+                            ${response.answer.answer_pic ? '<img src="' + response.answer.answer_pic + '" alt="Answer Picture" class="img-fluid mb-3 rounded" style="height: 200px;">' : ''}
+                        </div>
+                    `;
+                    $('#answers-container').append(newAnswer);
+                    $('#answer-form')[0].reset();
+                    alert('Answer posted successfully!');
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function() {
+                alert('Something went wrong. Please try again.');
+            }
+        });
+    });
+     // Function to toggle image visibility
+     window.toggleImage = function(element) {
+        var img = $(element).next('img');
+        img.toggle();
+        var text = img.is(':visible') ? 'Hide attachment' : 'See attachment';
+        $(element).text(text);
+    };
+
+     // Function to handle image click and display in modal
+     $('#answers-container').on('click', '.answer-img', function() {
+        var img = $(this);
+        var src = img.attr('src');
+        $('#modal-image').attr('src', src);
+        $('#imageModal').modal('show');
     });
 });
 </script>
