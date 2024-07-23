@@ -13,11 +13,7 @@
 <div class="row">
     <div class="col-lg-9">
     
-            <div class="container shadow bg-white rounded p-5">
-                <h2>Forum</h2>
-                <p>Welcome, {{ profilename }}!</p>
-            
-                <h3>Recommended Posts</h3>
+                <h3 class="text-body-tertiary">Recommended Posts</h3>
                 <ul class="list-group rounded">
                     {% if not recommendations %}
                         <div class="container bg-info-subtle rounded p-4">
@@ -25,7 +21,7 @@
                         </div>
                     {% endif %}
                     {% for post in recommendations %}
-                        <li id="post-{{ post._id }}" class="list-group-item bg-success bg-opacity-10 mb-3 rounded px-4 py-3">
+                        <li id="post-{{ post._id }}" class="list-group-item container shadow bg-white rounded p-4 my-3">
                             <a href="/posts/topic/{{ post.topic }}" class="btn btn-info py-1 px-2 mb-3" style="--bs-btn-border-color: #a6d765; --bs-btn-hover-border-color: #68b89f; --bs-btn-bg: #a6d765; --bs-btn-hover-bg: #68b89f;"><small>{{ post.topic }}</small></a>
                             
                             <div class="d-flex justify-content-between">
@@ -71,8 +67,8 @@
                         </li>
                     {% endfor %}
                 </ul>
-            
-                <h3 class="mt-4">Posts</h3>
+            <hr>
+                <h3 class="mt-4 text-body-tertiary">Posts</h3>
                 <ul class="list-group rounded">
                     {% if not posts %}
                         <div class="container bg-info-subtle rounded p-4">
@@ -80,7 +76,7 @@
                         </div>
                     {% endif %}
                     {% for post in posts %}
-                    <li id="post-{{ post._id }}" class="list-group-item bg-success bg-opacity-10 mb-3 rounded px-4 py-3">
+                    <li id="post-{{ post._id }}" class="list-group-item container shadow bg-white rounded p-4 my-3">
                         <a href="/posts/topic/{{ post.topic }}" class="btn btn-info py-1 px-2 mb-3" style="--bs-btn-border-color: #a6d765; --bs-btn-hover-border-color: #68b89f; --bs-btn-bg: #a6d765; --bs-btn-hover-bg: #68b89f;"><small>{{ post.topic }}</small></a>
                         
                         <div class="d-flex justify-content-between">
@@ -126,7 +122,7 @@
                     </li>
                     {% endfor %}
                 </ul>
-            </div>
+           
     </div>
     <div class="col-lg-3">
         <div class="container shadow bg-white rounded p-5">
@@ -152,7 +148,7 @@
             {% for post in recommendations %}
                
                 <div>
-                    <a href="{{ url_for('post_detail', post_id=post['_id'] ) }}" class="btn btn-link p-0 m-0">
+                    <a href="{{ url_for('post_detail', post_id=post['_id'] ) }}" class="btn-link p-0 m-0">
                         {{ post['title'] }}
                     </a>
                 </div>
@@ -169,7 +165,7 @@
             {% for post in posts[:5] %}
                
                 <div>
-                    <a href="{{ url_for('post_detail', post_id=post['_id'] ) }}" class="btn btn-link p-0 m-0">
+                    <a href="{{ url_for('post_detail', post_id=post['_id'] ) }}" class="btn-link p-0 m-0">
                         {{ post['title'] }}
                     </a>
                 </div>
