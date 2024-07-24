@@ -140,10 +140,15 @@ def post_edit(post_id, path, allowedFile):
     return render_template('posts/edit_post.html', post=post, topics=topics)
 
 
-def post_delete(post_id):
+def post_delete(post_id,path):
     if 'username' not in session:
         return redirect(url_for('index'))
-
+    post = posts_collection.find_one({"_id": ObjectId(post_id)})
+    post_pic = post.get('post_pic', '')
+    if post_pic:
+        old_image_path = os.path.join(path, post_pic)
+        if os.path.exists(old_image_path):
+            os.remove(old_image_path)
     # Hapus post
     posts_collection.delete_one({"_id": ObjectId(post_id)})
 

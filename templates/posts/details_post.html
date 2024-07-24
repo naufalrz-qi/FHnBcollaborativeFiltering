@@ -31,7 +31,27 @@
             {{ post.topic }}
         </a>
     </div>
-    <h2>{{ post.title }}</h2>
+    <div class="d-flex justify-content-between">
+                                
+        <h4>{{ post.title }}</h4>
+        
+        {% if post.id_user == session['user_id'] %}
+        <div class="dropdown">
+            <button class="btn bg-transparent border-0 dropdown-toggle" type="button" id="postOptions-{{ post._id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                <span style="font-weight: 900;">▪️▪️▪️</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postOptions-{{ post._id }}">
+                <li><a class="dropdown-item" href="{{ url_for('edit_post', post_id=post._id) }}">Edit</a></li>
+                <li>
+                    <form method="POST" action="{{ url_for('delete_post', post_id=post._id) }}" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="dropdown-item">Delete</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
     <p class="text-secondary"><small>Published at {{ post.date }}<br>
         by {{ profilename }}</small></p>
 
@@ -62,25 +82,50 @@
         </div>
         <div class="form-group mt-2">
             <label for="answer_pic">Attach a picture (optional):</label>
-            <input type="file" name="answer_pic" class="form-control-file" id="answer_pic">
+            <input type="file" name="answer_pic" class="form-control" id="answer_pic">
         </div>
-        <button type="submit" class="btn btn-primary mt-3">Post Answer</button>
+        <button type="submit" class="btn btn-success mt-3">Post Answer</button>
     </form>
 </div>
 <div class="container shadow bg-light rounded p-5 mt-4">
     <h3>Answers</h3>
     <div id="answers-container">
+        
+
+        {% if not answers %}
+        <div id="ifnoAnswer" class="container bg-info-subtle rounded p-4">
+            <p class="m-0"><span>No answer yet</span></p>
+        </div>
+        {% endif %}
+
+        <div id="new_answers">
+        </div>
         {% for answer in answers %}
             <div class="answer border-bottom mb-3 bg-success-subtle rounded p-4">
                 <small class="text-secondary">Answered by {{ answer.username }} on {{ answer.date }}</small>
-                <p class="mb-1">{{ answer.content }}</p>
-                
+                <div class="d-flex justify-content-between">
+                    <p class="mb-1">{{ answer.content }}</p>
+                    {% if answer.user_id == session['user_id'] %}
+                    <div class="dropdown">
+                        <button class="btn bg-transparent border-0 dropdown-toggle" type="button" id="answerOptions-{{ answer._id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span style="font-weight: 900;">▪️▪️▪️</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="answerOptions-{{ answer._id }}">
+                            <li><a class="dropdown-item" href="{{ url_for('edit_answer', answer_id=answer._id) }}">Edit</a></li>
+                            <li>
+                                <form method="POST" action="{{ url_for('delete_answer', answer_id=answer._id) }}" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="dropdown-item">Delete</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
                 {% if answer.answer_pic %}
-
                     <p class="see-attachment" onclick="toggleImage(this)">See attachment</p>
                     <img id="img-{{ answer._id }}" src="{{ url_for('static', filename='uploads/answer/img/' + answer.answer_pic) }}" alt="Answer Picture" class="img-fluid mb-3 rounded answer-img" data-answer-id="{{ answer._id }}" style="height: 200px;">
                 {% endif %}
-                
             </div>
         {% endfor %}
     </div>
@@ -151,13 +196,32 @@ $(document).ready(function() {
                     var newAnswer = `
                         <div class="answer border-bottom mb-3 bg-success-subtle rounded p-4">
                             <small class="text-secondary">Answered by ${response.answer.username} on ${response.answer.date}</small>
-                            <p>${response.answer.content}</p>
+                            <div class="d-flex justify-content-between">
+                                <p>${response.answer.content}</p>
+                                ${response.answer.user_id == ${session['user_id']} ? 
+                                    `<div class="dropdown">
+                                        <button class="btn bg-transparent border-0 dropdown-toggle" type="button" id="answerOptions-${response.answer._id}" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span style="font-weight: 900;">▪️▪️▪️</span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="answerOptions-${response.answer._id}">
+                                            <li><a class="dropdown-item" href="/edit_answer/${response.answer._id}">Edit</a></li>
+                                            <li>
+                                                <form method="POST" action="/delete_answer/${response.answer._id}" style="display: inline;">
+                                                    <input type="hidden" name="csrf_token" value="${$('input[name="csrf_token"]').val()}">
+                                                    <button type="submit" class="dropdown-item">Delete</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>` 
+                                    : ''}
+                            </div>
                             ${response.answer.answer_pic ? '<img src="' + response.answer.answer_pic + '" alt="Answer Picture" class="img-fluid mb-3 rounded" style="height: 200px;">' : ''}
                         </div>
                     `;
-                    $('#answers-container').append(newAnswer);
+
+                    $('#ifnoAnswer').addClass('d-none');
+                    $('#new_answers').append(newAnswer);
                     $('#answer-form')[0].reset();
-                    alert('Answer posted successfully!');
                 } else {
                     alert(response.message);
                 }

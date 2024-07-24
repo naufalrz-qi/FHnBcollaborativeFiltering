@@ -10,9 +10,10 @@ from datetime import datetime
 from alg_collaborativeFiltering import train_model
 from validation import validate_phone_number, is_unique, ensure_admin_exists  # Import the validation functions
 from controllers.posts.routes import post_create, post_delete, post_like, post_unlike, post_edit, posts_by_topic
-from controllers.answers.routes import answer_create
+from controllers.answers.routes import answer_create, answer_edit, answer_delete
 from controllers.auth.routes import auth_login, auth_logout, auth_register
 from controllers.algorithm.routes import load_recommendations
+from relations_checker import check_and_remove_orphans
 
 # Load environment variables from .env file
 load_dotenv()
@@ -36,6 +37,7 @@ app.config['UPLOAD_POST'] = 'static/uploads/post/img'
 app.config['UPLOAD_ANSWER'] = 'static/uploads/answer/img'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 
+check_and_remove_orphans()
 
 @app.route('/')
 def index():
@@ -60,6 +62,8 @@ def forum():
     if 'username' not in session:
         return redirect(url_for('index'))
 
+    check_and_remove_orphans()
+    
     user_id = session.get('user_id')
     posts = list(posts_collection.find().sort("date", -1))
     topics = list(topics_collection.find())
@@ -70,10 +74,16 @@ def forum():
     profilename= user['profile_name']
     # Fetch the number of likes for each post
     for post in posts:
+        post['answer_count'] = answers_collection.count_documents({"post_id":str(post['_id'])})
         post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
         post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
+    
 
     recommendations = load_recommendations(user_id)  # Load recommendations for current user
+    for post in recommendations:
+        post['answer_count'] = answers_collection.count_documents({"post_id":str(post['_id'])})
+        post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
+        post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
     return render_template('forum/forum.html', posts=posts, topics=topics,profilename=profilename, user_likes=user_likes, recommendations=recommendations)
 
 @app.route('/create_post', methods=['GET', 'POST'])
@@ -131,6 +141,15 @@ def topics():
 @app.route('/answer_post/<post_id>', methods=['POST'])
 def answer_post(post_id):
     return answer_create(post_id,app.config['UPLOAD_ANSWER'], app.config['ALLOWED_EXTENSIONS'] )
+
+@app.route('/edit_answer/<answer_id>', methods=['GET', 'POST'])
+def edit_answer(answer_id):
+    answer_edit(answer_id,app.config['UPLOAD_ANSWER'], app.config['ALLOWED_EXTENSIONS'] )
+
+@app.route('/delete_answer/<answer_id>', methods=['POST'])
+def delete_answer(answer_id):
+    answer_delete(answer_id, app.config['UPLOAD_ANSWER'])
+
 
 if __name__ == '__main__':
     ensure_admin_exists()
