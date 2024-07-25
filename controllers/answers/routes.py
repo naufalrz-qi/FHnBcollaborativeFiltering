@@ -50,29 +50,24 @@ def answer_create(post_id, path, allowedFile):
 
     return jsonify(success=True, answer=answer)
 
-def answer_edit(answer_id,path, allowedFile):
+def answer_edit(answer_id, path, allowedFile):
     if 'username' not in session:
-        return redirect(url_for('index'))
+        return jsonify(success=False, message='Unauthorized'), 401
+    
+    print(answer_id)
 
     answer = answers_collection.find_one({"_id": ObjectId(answer_id)})
+    
+    if not answer:
+        return jsonify(success=False, message='Answer not found.'), 404
 
-    if not answer or answer['user_id'] != session.get('user_id'):
-        flash('You are not authorized to edit this answer.')
-        return redirect(url_for('forum'))
-
-    post_id = answer['post_id']
+    if answer['user_id'] != session.get('user_id'):
+        return jsonify(success=False, message='You are not authorized to edit this answer.'), 403
 
     if request.method == 'POST':
-        content = request.form['content']
-        remove_pic = 'remove_pic' in request.form and request.form['remove_pic'] == 'on'
-        answer_pic = answer.get('answer_pic', '')  # Keep the old picture by default
-
-        if remove_pic:
-            answer_pic = ''
-            if answer_pic:
-                old_image_path = os.path.join(path, answer_pic)
-                if os.path.exists(old_image_path):
-                    os.remove(old_image_path)
+        content = request.form.get('content')
+        remove_pic = request.form.get('remove_pic') == 'on'
+        answer_pic = answer.get('answer_pic', '')
 
         # Handle file upload
         if 'answer_pic' in request.files:
@@ -92,28 +87,39 @@ def answer_edit(answer_id,path, allowedFile):
                 file.save(os.path.join(path, filename))
                 answer_pic = filename
 
+        if remove_pic and answer_pic:
+            old_image_path = os.path.join(path, answer_pic)
+            if os.path.exists(old_image_path):
+                os.remove(old_image_path)
+            answer_pic = ''
+
         answers_collection.update_one(
             {"_id": ObjectId(answer_id)},
             {"$set": {"content": content, "answer_pic": answer_pic}}
         )
 
-        flash('Answer updated successfully!')
-        return redirect(url_for('post_details', post_id=post_id))
+        updated_answer = answers_collection.find_one({"_id": ObjectId(answer_id)})
+        
+        # Convert ObjectId to string for JSON response
+        updated_answer['_id'] = str(updated_answer['_id'])
+        updated_answer['user_id'] = str(updated_answer['user_id'])
+        updated_answer['post_id'] = str(updated_answer['post_id'])
 
-    return render_template('edit_answer.html', answer=answer)
+        return jsonify(success=True, answer=updated_answer)
+
+    return jsonify(success=False, message='Invalid request method.'), 405
 
 def answer_delete(answer_id, path):
     answer = answers_collection.find_one({"_id": ObjectId(answer_id)})
+
+    if not answer:
+        return jsonify(success=False, message='Answer not found'), 404
+
     answer_pic = answer.get('answer_pic', '')
     if answer_pic:
         old_image_path = os.path.join(path, answer_pic)
         if os.path.exists(old_image_path):
             os.remove(old_image_path)
-            
-    if not answer:
-        flash('Answer not found', 'danger')
-        return redirect(url_for('index'))
 
     answers_collection.delete_one({"_id": ObjectId(answer_id)})
-    flash('Answer deleted successfully', 'success')
-    return redirect(url_for('post_details', post_id=answer['post_id']))
+    return jsonify(success=True, post_id=answer['post_id'])

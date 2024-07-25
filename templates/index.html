@@ -1,8 +1,82 @@
-{% extends "layouts/base_normal.html" %}
+{% extends "layouts/base_landing.html" %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Fohety - Home{% endblock %}
 
-{% block content %}
-<h2>Welcome to the Home Page</h2>
-<p>Please <a href="{{ url_for('login') }}">log in</a> to access the forum or <a href="{{ url_for('register') }}">register</a> if you don't have an account.</p>
+{% block landing %}
+<!-- Hero Section -->
+<section class="bg-transparent text-center py-auto d-flex align-items-center justify-content-center" style="padding-top: 200px; padding-bottom: 200px; color: #ffffff; text-shadow: 0.5px 2px 4px #000000;">
+    <div>
+        <h1 class="display-4" style="font-weight: 700;">Welcome to Fohety</h1>
+        <p class="lead">Your go-to forum for all things health and beauty. Join our community to share and learn.</p>
+        <a href="{{ url_for('register') }}" class="btn btn-success btn-lg shadow" style="text-shadow: none;">Get Started</a>
+    </div>
+</section>
+
+
+<!-- About Section -->
+<section id="about" class="py-5 bg-success-subtle bg-gradient">
+    <div class="container p-5">
+        <h2 class="text-center">About</h2>
+        <p class="lead text-center">Fohety is a community-driven platform where members can discuss, share, and discover tips and advice on health and beauty. Whether you're looking for skincare routines, fitness tips, or the latest in beauty trends, Fohety is your place to be.</p>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center">Features</h2>
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="rounded bg-gradient bg-info text-body p-5">
+                    <span class="display-4">🧑‍💻</span>
+                    <h4>Community Support</h4>
+                    <p>Connect with like-minded individuals and receive support and encouragement on your health and beauty journey.</p>
+                </div>
+                
+            </div>
+            <div class="col-md-4 ">
+                <div class="rounded bg-gradient bg-warning text-body p-5">
+                    <span class="display-4">📚</span>
+                <h4>Expert Advice</h4>
+                <p>Get insights from experts in the fields of dermatology, nutrition, fitness, and more.</p>
+                </div>
+
+            </div>
+            <div class="col-md-4">
+                <div class="rounded bg-gradient bg-success text-body p-5">
+                    <span class="display-4">📃</span>
+                    <h4>Exclusive Content</h4>
+                    <p>Access exclusive content including tutorials, product reviews, and much more.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Us Section -->
+<section id="contact" class="py-5">
+    <div class="container">
+        <h2 class="text-center">Contact Us</h2>
+        <div class="row">
+            <div class="col-lg-6 mx-auto">
+                <form action="#" method="post">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Message</label>
+                        <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}

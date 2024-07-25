@@ -1,251 +1,412 @@
-{% extends "layouts/base_normal.html" %}
-{% block style %}
-    <style>
-        .dropdown-toggle::after {
-            display: none !important;
-        }
-        .post-image {
-            width: 100%;
-            height: auto;
-            max-height: 500px;
-            object-fit: cover;
-        }
+    {% extends "layouts/base_normal.html" %}
+    {% block style %}
+        <style>
+            .dropdown-toggle::after {
+                display: none !important;
+            }
+            .post-image {
+                width: 100%;
+                height: auto;
+                max-height: 500px;
+                object-fit: cover;
+            }
 
-        .answer-img {
-            display: none;
-        }
-        .see-attachment {
-            cursor: pointer;
-            color: #007bff;
-            text-decoration: underline;
-        }
-    </style>
-{% endblock %}
+            .answer-img {
+                display: none;
+            }
+            .see-attachment {
+                cursor: pointer;
+                color: #007bff;
+                text-decoration: underline;
+            }
+        </style>
+    {% endblock %}
 
-{% block title %}Post Details{% endblock %}
+    {% block title %}Post Details{% endblock %}
 
-{% block content %}
-<div class="container shadow bg-white rounded p-5">
-    <div class="mb-3">
-        <a href="/posts/topic/{{ post.topic }}" class="btn btn-info py-1 px-2" style="--bs-btn-border-color: #a6d765; --bs-btn-hover-border-color: #68b89f; --bs-btn-bg: #a6d765; --bs-btn-hover-bg: #68b89f;">
-            {{ post.topic }}
-        </a>
-    </div>
-    <div class="d-flex justify-content-between">
-                                
-        <h4>{{ post.title }}</h4>
-        
-        {% if post.id_user == session['user_id'] %}
-        <div class="dropdown">
-            <button class="btn bg-transparent border-0 dropdown-toggle" type="button" id="postOptions-{{ post._id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                <span style="font-weight: 900;">▪️▪️▪️</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postOptions-{{ post._id }}">
-                <li><a class="dropdown-item" href="{{ url_for('edit_post', post_id=post._id) }}">Edit</a></li>
-                <li>
-                    <form method="POST" action="{{ url_for('delete_post', post_id=post._id) }}" style="display: inline;">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="dropdown-item">Delete</button>
-                    </form>
-                </li>
-            </ul>
+    {% block content %}
+    <div class="container shadow bg-white rounded p-lg-5 p-md-4 p-3">
+        <div class="mb-3">
+            <a href="/posts/topic/{{ post.topic }}" class="btn btn-info py-1 px-2" style="--bs-btn-border-color: #a6d765; --bs-btn-hover-border-color: #68b89f; --bs-btn-bg: #a6d765; --bs-btn-hover-bg: #68b89f;">
+                {{ post.topic }}
+            </a>
         </div>
-        {% endif %}
-    </div>
-    <p class="text-secondary"><small>Published at {{ post.date }}<br>
-        by {{ profilename }}</small></p>
-
-    <p class="justify-pre-wrap">{{ post.question }}</p>
-    {% if post.post_pic %}
-        <img src="{{ url_for('static', filename='uploads/post/img/' + post.post_pic) }}" alt="Post Picture" class="post-image mb-3 rounded">
-    {% endif %}
-
-    <!-- Like/Unlike button -->
-    <form class="like-form d-flex justify-content-end" method="POST" action="#">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <p class="text-danger my-auto like-count" style="font-weight: 700;">{{ post.like_count }}</p>
-        {% if post._id in user_likes %}
-            <button type="button" class="btn bg-transparent like-button border-0" data-action="unlike" data-post-id="{{ post._id }}">❤️</button>
-        {% else %}
-            <button type="button" class="btn bg-transparent like-button border-0" data-action="like" data-post-id="{{ post._id }}">🤍</button>
-        {% endif %}
-    </form>
-</div>
-<!-- Answer Section -->
-<div class="container shadow bg-light rounded p-5 mt-4">
-     <!-- Answer Form -->
-     <form id="answer-form" action="{{ url_for('answer_post', post_id=post._id) }}" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        
-        <div class="form-group">
-            <textarea class="form-control" name="answer" placeholder="Your answer" required></textarea>
-        </div>
-        <div class="form-group mt-2">
-            <label for="answer_pic">Attach a picture (optional):</label>
-            <input type="file" name="answer_pic" class="form-control" id="answer_pic">
-        </div>
-        <button type="submit" class="btn btn-success mt-3">Post Answer</button>
-    </form>
-</div>
-<div class="container shadow bg-light rounded p-5 mt-4">
-    <h3>Answers</h3>
-    <div id="answers-container">
-        
-
-        {% if not answers %}
-        <div id="ifnoAnswer" class="container bg-info-subtle rounded p-4">
-            <p class="m-0"><span>No answer yet</span></p>
-        </div>
-        {% endif %}
-
-        <div id="new_answers">
-        </div>
-        {% for answer in answers %}
-            <div class="answer border-bottom mb-3 bg-success-subtle rounded p-4">
-                <small class="text-secondary">Answered by {{ answer.username }} on {{ answer.date }}</small>
-                <div class="d-flex justify-content-between">
-                    <p class="mb-1">{{ answer.content }}</p>
-                    {% if answer.user_id == session['user_id'] %}
-                    <div class="dropdown">
-                        <button class="btn bg-transparent border-0 dropdown-toggle" type="button" id="answerOptions-{{ answer._id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span style="font-weight: 900;">▪️▪️▪️</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="answerOptions-{{ answer._id }}">
-                            <li><a class="dropdown-item" href="{{ url_for('edit_answer', answer_id=answer._id) }}">Edit</a></li>
-                            <li>
-                                <form method="POST" action="{{ url_for('delete_answer', answer_id=answer._id) }}" style="display: inline;">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="dropdown-item">Delete</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
-                    {% endif %}
-                </div>
-                {% if answer.answer_pic %}
-                    <p class="see-attachment" onclick="toggleImage(this)">See attachment</p>
-                    <img id="img-{{ answer._id }}" src="{{ url_for('static', filename='uploads/answer/img/' + answer.answer_pic) }}" alt="Answer Picture" class="img-fluid mb-3 rounded answer-img" data-answer-id="{{ answer._id }}" style="height: 200px;">
-                {% endif %}
+        <div class="d-flex justify-content-between">
+                                    
+            <h4>{{ post.title }}</h4>
+            
+            {% if post.id_user == session['user_id'] %}
+            <div class="dropdown">
+                <button class="btn bg-transparent border-0 dropdown-toggle" type="button" id="postOptions-{{ post._id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span style="font-weight: 900;">▪️▪️▪️</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="postOptions-{{ post._id }}">
+                    <li><a class="dropdown-item" href="{{ url_for('edit_post', post_id=post._id) }}">Edit</a></li>
+                    <li>
+                        <form method="POST" action="{{ url_for('delete_post', post_id=post._id) }}" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="dropdown-item">Delete</button>
+                        </form>
+                    </li>
+                </ul>
             </div>
-        {% endfor %}
-    </div>
-</div>
-
-<!-- Modal for image display -->
-<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true" style="--bs-modal-width: 80%;">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-body">
-          <img id="modal-image" src="" class="img-fluid" alt="Answer Picture">
+            {% endif %}
         </div>
-      </div>
+        <p class="text-secondary"><small>Published at {{ post.date }}<br>
+            by {{ profilename }}</small></p>
+
+        <p class="justify-pre-wrap">{{ post.question }}</p>
+        {% if post.post_pic %}
+            <img src="{{ url_for('static', filename='uploads/post/img/' + post.post_pic) }}" alt="Post Picture" class="post-image mb-3 rounded">
+        {% endif %}
+
+        <!-- Like/Unlike button -->
+        <form class="like-form d-flex justify-content-end" method="POST" action="#">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <p class="text-danger my-auto like-count" style="font-weight: 700;">{{ post.like_count }}</p>
+            {% if post._id in user_likes %}
+                <button type="button" class="btn bg-transparent like-button border-0" data-action="unlike" data-post-id="{{ post._id }}">❤️</button>
+            {% else %}
+                <button type="button" class="btn bg-transparent like-button border-0" data-action="like" data-post-id="{{ post._id }}">🤍</button>
+            {% endif %}
+        </form>
     </div>
-  </div>
-{% endblock %}
+    <!-- Answer Section -->
+    <div class="container shadow bg-light rounded p-lg-5 p-md-4 p-3 mt-4">
+        <!-- Answer Form -->
+        <form id="answer-form" action="{{ url_for('answer_post', post_id=post._id) }}" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-group">
+                <textarea class="form-control" name="answer" placeholder="Your answer" required></textarea>
+            </div>
+            <div class="form-group mt-2">
+                <label for="answer_pic">Attach a picture (optional):</label>
+                <input type="file" name="answer_pic" class="form-control" id="answer_pic">
+            </div>
+            <button type="submit" class="btn btn-success mt-3">Post Answer</button>
+        </form>
+    </div>
+    <div class="container shadow bg-light rounded p-lg-5 p-md-4 p-3 mt-4">
+        <h3>Answers</h3>
+        <div id="answers-container">
+            
 
-{% block script %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-$(document).ready(function() {
-    // Function to handle like/unlike button clicks
-    $('.like-button').click(function() {
-        var button = $(this);
-        var action = button.data('action');
-        var postId = button.data('post-id');
-        var url = action === 'like' ? '/like_post/' + postId : '/unlike_post/' + postId;
+            {% if not answers %}
+            <div id="ifnoAnswer" class="container bg-info-subtle rounded p-4">
+                <p class="m-0"><span>No answer yet</span></p>
+            </div>
+            {% endif %}
 
-        $.ajax({
-            type: 'POST',
-            url: url,
-            headers: {
-                'X-CSRFToken': $('input[name="csrf_token"]').val()
-            },
-            success: function(response) {
-                if (response.success) {
-                    button.closest('form').find('.like-count').text(response.like_count);
-                    if (action === 'like') {
-                        button.data('action', 'unlike').text('❤️');
+            <div id="new_answers" data-user-id="{{ session['user_id'] }}">
+            </div>
+            {% for answer in answers %}
+                <div id="answer-{{ answer._id }}" class="answer border-bottom mb-3 bg-success-subtle rounded p-4">
+                    <small class="text-secondary">Answered by {{ answer.username }} on {{ answer.date }}</small>
+                    <div class="d-flex justify-content-between">
+                        <p class="mb-1 answer-content">{{ answer.content }}</p>
+                        {% if answer.user_id == session['user_id'] %}
+                        <div class="dropdown">
+                            <button class="btn bg-transparent border-0 dropdown-toggle" type="button" id="answerOptions-{{ answer._id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span style="font-weight: 900;">▪️▪️▪️</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="answerOptions-{{ answer._id }}">
+                                <li><a class="dropdown-item edit-answer" href="#" data-answer-id="{{ answer._id }}">Edit</a></li>
+                                <li><a class="dropdown-item delete-answer" href="#" data-answer-id="{{ answer._id }}">Delete</a></li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="answer-image-container" id="answer-image-container-{{ answer._id }}">
+                    {% if answer.answer_pic %}
+                        <p class="see-attachment" onclick="toggleImage(this)">See attachment</p>
+                        <img id="img-{{ answer._id }}" src="{{ url_for('static', filename='uploads/answer/img/' + answer.answer_pic) }}" alt="Answer Picture" class="img-fluid mb-3 rounded answer-img" data-answer-id="{{ answer._id }}" style="height: 200px;">
+                    {% endif %}
+                    </div>
+                </div>
+
+
+                <div class="modal fade" id="editAnswerModal{{ answer._id }}" tabindex="-1" role="dialog" aria-labelledby="editAnswerModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editAnswerModalLabel">Edit Answer</h5>
+                                <button type="button" class="close border-0 bg-transparent ms-auto" data-bs-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                {% include 'posts/edit_answer.html' %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+   
+
+    <!-- Modal for image display -->
+    <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true" style="--bs-modal-width: 80%;">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+            <img id="modal-image" src="" class="img-fluid" alt="Answer Picture">
+            </div>
+        </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    {% block script %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        // Function to handle like/unlike button clicks
+        $('.like-button').click(function() {
+            var button = $(this);
+            var action = button.data('action');
+            var postId = button.data('post-id');
+            var url = action === 'like' ? '/like_post/' + postId : '/unlike_post/' + postId;
+
+            $.ajax({
+                type: 'POST',
+                url: url,
+                headers: {
+                    'X-CSRFToken': $('input[name="csrf_token"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        button.closest('form').find('.like-count').text(response.like_count);
+                        if (action === 'like') {
+                            button.data('action', 'unlike').text('❤️');
+                        } else {
+                            button.data('action', 'like').text('🤍');
+                        }
                     } else {
-                        button.data('action', 'like').text('🤍');
+                        alert(response.message);
+                    }
+                },
+                error: function() {
+                    alert('Something went wrong. Please try again.');
+                }
+            });
+        });
+
+        // Function to handle answer form submission
+        $('#answer-form').submit(function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            var session = $('#new_answers').data('user-id');
+            $.ajax({
+                type: 'POST',
+                url: $(this).attr('action'),
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        // Create the new answer HTML
+                        var newAnswer = `
+                            <div id="answer-${response.answer._id}" class="answer border-bottom mb-3 bg-success-subtle rounded p-4">
+                                <small class="text-secondary">Answered by ${response.answer.username} on ${response.answer.date}</small>
+                                <div class="d-flex justify-content-between">
+                                    <p class="answer-content">${response.answer.content}</p>
+                                    ${response.answer.user_id == session ? renderDropdown(response.answer._id) : ''}
+                                </div>
+                            <div class="answer-image-container" id="answer-image-container-${ response.answer._id }">
+                                ${response.answer.answer_pic ? '<p class="see-attachment" onclick="toggleImage(this)">See attachment</p><img src="/static/uploads/answer/img/' + response.answer.answer_pic + '" alt="Answer Picture" class="img-fluid mb-3 rounded answer-img" style="height: 200px;">' : ''}
+                            </div>
+                            </div>
+    
+                            <!-- Modal for editing the new answer -->
+                            <div class="modal fade" id="editAnswerModal${response.answer._id}" tabindex="-1" role="dialog" aria-labelledby="editAnswerModalLabel${response.answer._id}" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editAnswerModalLabel${response.answer._id}">Edit Answer</h5>
+                                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form class="edit-answer-form" data-answer-id="${response.answer._id}" method="POST" enctype="multipart/form-data">
+                                                <input type="hidden" name="csrf_token" value="${$('input[name="csrf_token"]').val()}">
+                                                <textarea class="form-control" name="content">${response.answer.content}</textarea>
+                                                <div class="mt-2">
+                                                    <input type="file" name="answer_pic" class="form-control">
+                                                </div>
+                                                <div class="form-check mt-2">
+                                                    <input class="form-check-input" type="checkbox" name="remove_pic" value="remove" id="remove_pic_${response.answer._id}">
+                                                    <label class="form-check-label" for="remove_pic_${response.answer._id}">
+                                                        Remove existing picture
+                                                    </label>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary mt-3">Update Answer</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+    
+                        $('#ifnoAnswer').addClass('d-none');
+                        $('#new_answers').append(newAnswer);
+                        $('#answer-form')[0].reset();
+    
+                        // Reinitialize Bootstrap modal functionality
+                        var newModal = new bootstrap.Modal(document.getElementById(`editAnswerModal${response.answer._id}`));
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function() {
+                    alert('Something went wrong. Please try again.');
+                }
+            });
+        });
+        
+        // Function to toggle image visibility
+        window.toggleImage = function(element) {
+            var img = $(element).next('img');
+            img.toggle();
+            var text = img.is(':visible') ? 'Hide attachment' : 'See attachment';
+            $(element).text(text);
+        };
+    
+        // Function to render dropdown for answer actions
+        function renderDropdown(answerId) {
+            return `
+                <div class="dropdown">
+                    <button class="btn bg-transparent border-0 dropdown-toggle" type="button" id="answerOptions-${answerId}" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span style="font-weight: 900;">▪️▪️▪️</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="answerOptions-${answerId}">
+                        <li><a class="dropdown-item edit-answer" href="#" data-bs-toggle="modal" data-bs-target="#editAnswerModal${answerId}">Edit</a></li>
+                        <li><a class="dropdown-item delete-answer" href="#" data-answer-id="${answerId}">Delete</a></li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        // Function to handle image click and display in modal
+        $('#answers-container').on('click', '.answer-img', function() {
+            var img = $(this);
+            var src = img.attr('src');
+            $('#modal-image').attr('src', src);
+            $('#imageModal').modal('show');
+        });
+
+
+        // Handle edit answer button click
+        $(document).on('click', '.edit-answer', function(event) {
+            event.preventDefault();
+            let answerId = $(this).data('answer-id')
+            $('#editAnswerModal'+answerId).modal('show');
+        });
+
+
+
+        // Handle edit answer form submission
+// Handle edit answer form submission
+$(document).on('submit', '.edit-answer-form', function(event) {
+    event.preventDefault();
+    var formData = new FormData(this);
+    var answerId = $(this).data('answer-id');
+    var url = `/edit_answer/${answerId}`;
+
+    $.ajax({
+        type: 'POST',
+        url: url,
+        data: formData,
+        headers: {
+            'X-CSRFToken': $('input[name="csrf_token"]').val()
+        },
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                var answerElement = $(`#answer-${answerId}`);
+                answerElement.find('.answer-content').text(response.answer.content);
+
+                var imageContainer = $(`#answer-image-container-${answerId}`);
+
+                // Check if answer_pic is provided in the response
+                if (response.answer.answer_pic) {
+                    let answerImg = imageContainer.find('.answer-img');
+                    let seeAttachment = imageContainer.find('.see-attachment');
+
+                    // If img element doesn't exist, create one
+                    if (answerImg.length === 0) {
+                        answerImg = $('<img>', {
+                            class: 'img-fluid mb-3 rounded answer-img',
+                            style: 'height: 200px;',
+                            src: '/static/uploads/answer/img/' + response.answer.answer_pic
+                        });
+
+                        // If "See attachment" text doesn't exist, create it
+                        if (seeAttachment.length === 0) {
+                            seeAttachment = $('<p>', {
+                                class: 'see-attachment',
+                                text: 'See attachment',
+                                onclick: 'toggleImage(this)'
+                            });
+                            imageContainer.append(seeAttachment);
+                        }
+
+                        // Append the image after the "See attachment" text
+                        seeAttachment.after(answerImg);
+                    } else {
+                        answerImg.attr('src', '/static/uploads/answer/img/' + response.answer.answer_pic).show();
                     }
                 } else {
-                    alert(response.message);
+                    // Hide the image and "See attachment" if no image exists
+                    imageContainer.find('.answer-img').hide();
+                    imageContainer.find('.see-attachment').hide();
                 }
-            },
-            error: function() {
-                alert('Something went wrong. Please try again.');
+
+                $('#editAnswerModal' + answerId).modal('hide');
+            } else {
+                alert(response.message);
             }
-        });
-    });
-
-    // Function to handle answer form submission
-    $('#answer-form').submit(function(event) {
-        event.preventDefault();
-        var formData = new FormData(this);
-
-        $.ajax({
-            type: 'POST',
-            url: $(this).attr('action'),
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                console.log(response)
-                if (response.success) {
-                    // Append new answer to the container
-                    var newAnswer = `
-                        <div class="answer border-bottom mb-3 bg-success-subtle rounded p-4">
-                            <small class="text-secondary">Answered by ${response.answer.username} on ${response.answer.date}</small>
-                            <div class="d-flex justify-content-between">
-                                <p>${response.answer.content}</p>
-                                ${response.answer.user_id == ${session['user_id']} ? 
-                                    `<div class="dropdown">
-                                        <button class="btn bg-transparent border-0 dropdown-toggle" type="button" id="answerOptions-${response.answer._id}" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <span style="font-weight: 900;">▪️▪️▪️</span>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="answerOptions-${response.answer._id}">
-                                            <li><a class="dropdown-item" href="/edit_answer/${response.answer._id}">Edit</a></li>
-                                            <li>
-                                                <form method="POST" action="/delete_answer/${response.answer._id}" style="display: inline;">
-                                                    <input type="hidden" name="csrf_token" value="${$('input[name="csrf_token"]').val()}">
-                                                    <button type="submit" class="dropdown-item">Delete</button>
-                                                </form>
-                                            </li>
-                                        </ul>
-                                    </div>` 
-                                    : ''}
-                            </div>
-                            ${response.answer.answer_pic ? '<img src="' + response.answer.answer_pic + '" alt="Answer Picture" class="img-fluid mb-3 rounded" style="height: 200px;">' : ''}
-                        </div>
-                    `;
-
-                    $('#ifnoAnswer').addClass('d-none');
-                    $('#new_answers').append(newAnswer);
-                    $('#answer-form')[0].reset();
-                } else {
-                    alert(response.message);
-                }
-            },
-            error: function() {
-                alert('Something went wrong. Please try again.');
-            }
-        });
-    });
-     // Function to toggle image visibility
-     window.toggleImage = function(element) {
-        var img = $(element).next('img');
-        img.toggle();
-        var text = img.is(':visible') ? 'Hide attachment' : 'See attachment';
-        $(element).text(text);
-    };
-
-     // Function to handle image click and display in modal
-     $('#answers-container').on('click', '.answer-img', function() {
-        var img = $(this);
-        var src = img.attr('src');
-        $('#modal-image').attr('src', src);
-        $('#imageModal').modal('show');
+        },
+        error: function() {
+            alert('Something went wrong. Please try again.');
+        }
     });
 });
-</script>
-{% endblock %}
+
+
+
+        // Handle delete answer button click
+        $(document).on('click', '.delete-answer', function(event) {
+            event.preventDefault();
+            if (!confirm('Are you sure you want to delete this answer?')) {
+                return;
+            }
+
+            var answerId = $(this).data('answer-id');
+            var url = `/delete_answer/${answerId}`;
+
+            $.ajax({
+                type: 'POST',
+                url: url,
+                headers: {
+                    'X-CSRFToken': $('input[name="csrf_token"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $(`#answer-${answerId}`).remove();
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function() {
+                    alert('Something went wrong. Please try again.');
+                }
+            });
+        });
+    });
+    </script>
+    {% endblock %}

@@ -1,6 +1,6 @@
 from flask import render_template,jsonify, request, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
-from . import users_collection, topics_collection, posts_collection, likes_collection
+from . import users_collection, topics_collection, posts_collection, likes_collection, answers_collection
 import os
 from bson import ObjectId
 from datetime import datetime
@@ -8,10 +8,32 @@ from alg_collaborativeFiltering import train_model
 from validation import validate_phone_number, is_unique, ensure_admin_exists, allowed_file
 from controllers.algorithm.routes import load_recommendations_by_topic
 
+
+def details_post(post_id):
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    answers = list(answers_collection.find({"post_id": post_id}).sort("date", -1))
+    post = posts_collection.find_one({"_id": ObjectId(post_id)})
+    if not post:
+        flash("Post not found", "danger")
+        return redirect(url_for('forum'))
+
+    post['like_count'] = likes_collection.count_documents({"post_id": post_id})
+    post['_id'] = str(post['_id'])  # Ensure _id is a string
+    for answer in answers:
+        user_answer = users_collection.find_one({"_id": ObjectId(answer['user_id'])})
+        answer['username'] = user_answer['username']
+    user_likes = set(str(like['post_id']) for like in likes_collection.find({"user_id": session.get('user_id')}))
+    user = users_collection.find_one({'_id': ObjectId(post['id_user'])})
+    profilename = user['profile_name']
+
+    return render_template('posts/details_post.html', post=post,answers=answers, profilename=profilename, user_likes=user_likes)
+
 def posts_by_topic(topic_name):
     # Pastikan user terautentikasi
-    if 'username' not in session:
-        return redirect(url_for('index'))
+    # if 'username' not in session:
+    #     return redirect(url_for('index'))
     
     user_id = session.get('user_id')
     topics = list(topics_collection.find())
@@ -19,19 +41,19 @@ def posts_by_topic(topic_name):
     posts = list(posts_collection.find({"topic": topic_name}).sort("date", -1))
     print(posts)
     user = users_collection.find_one({'_id':ObjectId(user_id)})
-    profilename= user['profile_name']
     # Fetch the number of likes for each post
     for post in posts:
+        post['answer_count'] = answers_collection.count_documents({"post_id":str(post['_id'])})
         post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
         post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
     # Temukan semua post yang sesuai dengan topik yang diberikan
     recommendations = load_recommendations_by_topic(user_id, topic_name)
-    return render_template('forum/forum.html', posts=posts,profilename=profilename,topics=topics, user_likes=user_likes, recommendations=recommendations)
+    return render_template('forum/forum.html', posts=posts,topics=topics, user_likes=user_likes, recommendations=recommendations)
 
 
 def post_create(path, allowedFile):
     if 'username' not in session:
-        return redirect(url_for('index'))
+        return redirect(url_for('login'))
     
     topics = list(topics_collection.find())
     
@@ -78,7 +100,7 @@ def post_create(path, allowedFile):
 
 def post_edit(post_id, path, allowedFile):
     if 'username' not in session:
-        return redirect(url_for('index'))
+        return redirect(url_for('login'))
 
     post = posts_collection.find_one({"_id": ObjectId(post_id)})
 
@@ -142,7 +164,7 @@ def post_edit(post_id, path, allowedFile):
 
 def post_delete(post_id,path):
     if 'username' not in session:
-        return redirect(url_for('index'))
+        return redirect(url_for('login'))
     post = posts_collection.find_one({"_id": ObjectId(post_id)})
     post_pic = post.get('post_pic', '')
     if post_pic:
@@ -163,7 +185,7 @@ def post_delete(post_id,path):
 
 def post_like(post_id):
     if 'username' not in session:
-        return redirect(url_for('index'))
+        return redirect(url_for('login'))
 
     print('=========================================')
     print('INI ADALAH :',post_id)
@@ -181,7 +203,7 @@ def post_like(post_id):
 
 def post_unlike(post_id):
     if 'username' not in session:
-        return redirect(url_for('index'))
+        return redirect(url_for('login'))
 
     user_id = session.get('user_id')
     print('=========================================')

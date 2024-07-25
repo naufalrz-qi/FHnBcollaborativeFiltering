@@ -9,7 +9,7 @@ from flask_wtf.csrf import CSRFProtect
 from datetime import datetime
 from alg_collaborativeFiltering import train_model
 from validation import validate_phone_number, is_unique, ensure_admin_exists  # Import the validation functions
-from controllers.posts.routes import post_create, post_delete, post_like, post_unlike, post_edit, posts_by_topic
+from controllers.posts.routes import post_create, post_delete, post_like, post_unlike, post_edit, posts_by_topic, details_post
 from controllers.answers.routes import answer_create, answer_edit, answer_delete
 from controllers.auth.routes import auth_login, auth_logout, auth_register
 from controllers.algorithm.routes import load_recommendations
@@ -41,8 +41,8 @@ check_and_remove_orphans()
 
 @app.route('/')
 def index():
-    if 'username' in session:
-        return redirect(url_for('forum'))
+    # if 'username' in session:
+    #     return redirect(url_for('forum'))
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -59,8 +59,8 @@ def logout():
 
 @app.route('/forum', methods=['GET', 'POST'])
 def forum():
-    if 'username' not in session:
-        return redirect(url_for('index'))
+    # if 'username' not in session:
+    #     return redirect(url_for('index'))
 
     check_and_remove_orphans()
     
@@ -71,7 +71,6 @@ def forum():
     # Kumpulkan semua likes dari pengguna yang sedang login
     user_likes = set(str(like['post_id']) for like in likes_collection.find({"user_id": user_id}))
     user = users_collection.find_one({'_id':ObjectId(user_id)})
-    profilename= user['profile_name']
     # Fetch the number of likes for each post
     for post in posts:
         post['answer_count'] = answers_collection.count_documents({"post_id":str(post['_id'])})
@@ -84,7 +83,7 @@ def forum():
         post['answer_count'] = answers_collection.count_documents({"post_id":str(post['_id'])})
         post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
         post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
-    return render_template('forum/forum.html', posts=posts, topics=topics,profilename=profilename, user_likes=user_likes, recommendations=recommendations)
+    return render_template('forum/forum.html', posts=posts, topics=topics, user_likes=user_likes, recommendations=recommendations)
 
 @app.route('/create_post', methods=['GET', 'POST'])
 def create_post():
@@ -112,25 +111,7 @@ def posts_by_topic_route(topic_name):
 
 @app.route('/post/<post_id>')
 def post_detail(post_id):
-    if 'username' not in session:
-        return redirect(url_for('index'))
-
-    answers = list(answers_collection.find({"post_id": post_id}).sort("date", -1))
-    post = posts_collection.find_one({"_id": ObjectId(post_id)})
-    if not post:
-        flash("Post not found", "danger")
-        return redirect(url_for('forum'))
-
-    post['like_count'] = likes_collection.count_documents({"post_id": post_id})
-    post['_id'] = str(post['_id'])  # Ensure _id is a string
-    for answer in answers:
-        user_answer = users_collection.find_one({"_id": ObjectId(answer['user_id'])})
-        answer['username'] = user_answer['username']
-    user_likes = set(str(like['post_id']) for like in likes_collection.find({"user_id": session.get('user_id')}))
-    user = users_collection.find_one({'_id': ObjectId(post['id_user'])})
-    profilename = user['profile_name']
-
-    return render_template('posts/details_post.html', post=post,answers=answers, profilename=profilename, user_likes=user_likes)
+    return details_post(post_id)
 
 
 @app.route('/topics')
@@ -144,11 +125,11 @@ def answer_post(post_id):
 
 @app.route('/edit_answer/<answer_id>', methods=['GET', 'POST'])
 def edit_answer(answer_id):
-    answer_edit(answer_id,app.config['UPLOAD_ANSWER'], app.config['ALLOWED_EXTENSIONS'] )
+    return answer_edit(answer_id,app.config['UPLOAD_ANSWER'], app.config['ALLOWED_EXTENSIONS'] )
 
 @app.route('/delete_answer/<answer_id>', methods=['POST'])
 def delete_answer(answer_id):
-    answer_delete(answer_id, app.config['UPLOAD_ANSWER'])
+    return answer_delete(answer_id, app.config['UPLOAD_ANSWER'])
 
 
 if __name__ == '__main__':

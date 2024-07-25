@@ -12,5 +12,6 @@ users_collection = db['users']
 posts_collection = db['posts']
 topics_collection = db['topics']
 likes_collection = db['likes']
+answers_collection = db['answers']
 
 from . import routes

@@ -1,4 +1,4 @@
-<header class="navbar navbar-expand-lg navbar-light bg-white navbar-custom fixed-top shadow rounded mx-5 my-4 p-3">
+<header class="navbar navbar-expand-lg navbar-light bg-white navbar-custom fixed-top shadow rounded mx-lg-5 mx-md-5 mx-3 my-4 p-lg-3 p-md-3 p-2">
     <div class="container">
         <a class="navbar-brand" href="{{ url_for('index' ) }}" style="font-weight: 700;">Fohety</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -10,11 +10,32 @@
                     <a class="nav-link" href="{{ url_for('index' ) }}">Home</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="/#about">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#features">Features</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('forum') }}">Forum</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('topics') }}">Topics</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/#contact">Contact Us</a>
+                </li>
+                {% if not 'username' in session %}
+                <li class="nav-item">
+                    <a class="btn btn-success ms-lg-2 mb-md-2 mb-lg-0 mb-2" href="{{ url_for('login') }}">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-outline-success ms-lg-2" href="{{ url_for('register') }}">Register</a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="btn btn-secondary ms-lg-2" href="{{ url_for('logout') }}">Logout</a>
+                </li>
+                {% endif %}
                  
             </ul>
         </div>

@@ -21,13 +21,15 @@
   
     {% endif %}
 
-    <main class="p-5">
-  
-            {% block content %}
-            <!-- Main content will be injected here -->
-            {% endblock %}
- 
+    <main class="p-lg-5 p-md-4 p-3">
+        {% block content %}
+        <!-- Main content will be injected here -->
+        {% endblock %}
+
     </main>
+    {% block landing %}
+    <!-- Main content will be injected here -->
+    {% endblock %}
 
     {% include 'layouts/components/footer.html' %}
 
