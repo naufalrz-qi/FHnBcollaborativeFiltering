@@ -7,6 +7,7 @@ from datetime import datetime
 from alg_collaborativeFiltering import train_model
 from validation import validate_phone_number, is_unique, ensure_admin_exists, allowed_file
 from controllers.algorithm.routes import load_recommendations_by_topic
+import json
 
 
 def details_post(post_id):
@@ -38,8 +39,9 @@ def posts_by_topic(topic_name):
     user_id = session.get('user_id')
     topics = list(topics_collection.find())
     user_likes = set(str(like['post_id']) for like in likes_collection.find({"user_id": user_id}))
-    posts = list(posts_collection.find({"topic": topic_name}).sort("date", -1))
-    print(posts)
+    recommendations = load_recommendations_by_topic(user_id, topic_name)
+    recommendation_ids = [ObjectId(rec["_id"]) for rec in recommendations]
+    posts = list(posts_collection.find({"_id": {"$nin": recommendation_ids}, "topic": topic_name}).sort("date", -1))
     user = users_collection.find_one({'_id':ObjectId(user_id)})
     # Fetch the number of likes for each post
     for post in posts:
@@ -47,7 +49,10 @@ def posts_by_topic(topic_name):
         post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
         post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
     # Temukan semua post yang sesuai dengan topik yang diberikan
-    recommendations = load_recommendations_by_topic(user_id, topic_name)
+    for post in recommendations:
+        post['answer_count'] = answers_collection.count_documents({"post_id":str(post['_id'])})
+        post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
+        post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
     return render_template('forum/forum.html', posts=posts,topics=topics, user_likes=user_likes, recommendations=recommendations)
 
 
@@ -187,8 +192,6 @@ def post_like(post_id):
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    print('=========================================')
-    print('INI ADALAH :',post_id)
     user_id = session.get('user_id')
     if not likes_collection.find_one({"user_id": user_id, "post_id": post_id}):
         likes_collection.insert_one({"user_id": user_id, "post_id": post_id})
@@ -206,8 +209,6 @@ def post_unlike(post_id):
         return redirect(url_for('login'))
 
     user_id = session.get('user_id')
-    print('=========================================')
-    print('INI ADALAH :',post_id)    
     like = likes_collection.find_one({"user_id": user_id, "post_id": post_id})
     if like:
         likes_collection.delete_one({"_id": like['_id']})
@@ -219,3 +220,4 @@ def post_unlike(post_id):
     else:
         return jsonify({"success": False, "message": "Post not liked yet"}), 400
     
+

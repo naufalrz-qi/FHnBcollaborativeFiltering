@@ -1,0 +1,179 @@
+{% extends "layouts/base_normal.html" %}
+{% block style %}
+    <style>
+        .dropdown-toggle::after {
+            display: none !important;
+        }
+        .post-item {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .post-date {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .post-description {
+            font-size: 1rem;
+            color: #212529;
+        }
+        .img-thumbnail {
+            height: 200px;
+            object-fit: cover;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-9">
+        <div class="container shadow bg-white rounded p-4 mb-3">
+            <h1>Search Posts</h1>
+            <form action="{{ url_for('search') }}" method="get" class="d-flex">
+                <div class="input-group">
+                    <input type="hidden" name="user_id" value="{{ session['user_id'] }}">
+                    <input type="text" name="query" class="form-control mr-sm-2" placeholder="Search for posts..."/>
+                    <button type="submit" class="input-group-text bg-gradient d-flex align-items-center">
+                    <i class="bi bi-search"></i> <!-- Ikon pencarian dari Bootstrap Icons -->
+                </button>
+                </div>
+                
+            </form>
+            {% if recommendations %}
+            <h2 class="mt-4">Recommended Posts</h2>
+            <ul class="list-group">
+                {% for post in recommendations %}
+                <li class="list-group-item">
+                    <a href="{{ url_for('post_detail', post_id=post['_id']) }}" class="list-group-item-action post-item">{{ post['title'] }}</a>
+                    <p class="post-date">Published at {{ post['date'] }}</p>
+                    <p class="post-description">{{ post['question'] }}</p>
+                    {% if post['post_pic'] %}
+                        <img src="{{ url_for('static', filename='uploads/post/img/' + post['post_pic']) }}" alt="Post Picture" class="img-thumbnail mb-2 rounded">
+                    {% endif %}
+                    <div class="d-flex justify-content-between">
+                        <span class="text-success">Likes: {{ post['like_count'] }}</span>
+                        <span class="text-info">Comments: {{ post['answer_count'] }}</span>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% if results %}
+            <h2 class="mt-4">Search Results</h2>
+            <ul class="list-group">
+                {% for post in results %}
+                <li class="list-group-item">
+                    <a href="{{ url_for('post_detail', post_id=post['_id']) }}" class="list-group-item-action post-item">{{ post['title'] }}</a>
+                    <p class="post-date">Published at {{ post['date'] }}</p>
+                    <p class="post-description">{{ post['question'] }}</p>
+                    {% if post['post_pic'] %}
+                        <img src="{{ url_for('static', filename='uploads/post/img/' + post['post_pic']) }}" alt="Post Picture" class="img-thumbnail mb-2 rounded">
+                    {% endif %}
+                    <div class="d-flex justify-content-between">
+                        <span class="text-success">Likes: {{ post['like_count'] }}</span>
+                        <span class="text-info">Comments: {{ post['answer_count'] }}</span>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-lg-3">
+        <div class="container shadow bg-white rounded p-5">
+            <h5>Topics</h5>
+            <div class="d-block mb-4">
+                <a href="{{ url_for('topics') }}" class="btn btn-secondary py-1 px-2 mb-3">
+                    Others
+                </a>
+                {% for topic in topics[:5] %}
+                <a href="{{ url_for('posts_by_topic_route', topic_name=topic['name']) }}" class="btn btn-info bg-gradient text-light py-1 px-2 mb-3">
+                    {{ topic['name'] }}
+                </a>
+                {% endfor %}
+            </div>
+
+            <h5>Recommended Posts</h5>
+            <div class="d-block mb-4">
+                {% for post in recommendations %}
+                <div>
+                    <a href="{{ url_for('post_detail', post_id=post['_id'] ) }}" class="btn-link p-0 m-0">
+                        {{ post['title'] }}
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <h5>Other Posts</h5>
+            <div class="d-block">
+                {% for post in results[:5] %}
+                <div>
+                    <a href="{{ url_for('post_detail', post_id=post['_id'] ) }}" class="btn-link p-0 m-0">
+                        {{ post['title'] }}
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        var isExpanded = false;
+        $('#post-image').click(function() {
+            if (isExpanded) {
+                $(this).removeClass('img-expanded').css({
+                    width: '100%',
+                    height: '300px'
+                });
+            } else {
+                $(this).addClass('img-expanded').css({
+                    width: 'auto',
+                    height: 'auto'
+                });
+            }
+            isExpanded = !isExpanded;
+        });
+
+        $('.like-button').click(function() {
+            var button = $(this);
+            var action = button.data('action');
+            var postId = button.data('post-id');
+            var url = action === 'like' ? '/like_post/' + postId : '/unlike_post/' + postId;
+
+            $.ajax({
+                type: 'POST',
+                url: url,
+                headers: {
+                    'X-CSRFToken': $('input[name="csrf_token"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        button.closest('li').find('.like-count').text(response.like_count);
+                        if (action === 'like') {
+                            button.data('action', 'unlike').removeClass('btn-outline-secondary').addClass('btn-outline-danger').text('❤️');
+                        } else {
+                            button.data('action', 'like').removeClass('btn-outline-danger').addClass('btn-outline-secondary').text('🤍');
+                        }
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function() {
+                    alert('Something went wrong. Please try again.');
+                }
+            });
+        });
+
+        $('#searchInput').on('input', function() {
+            var searchValue = $(this).val().toLowerCase();
+            $('.list-group-item').each(function() {
+                var postItem = $(this).find('.post-item').text().toLowerCase();
+                $(this).toggle(postItem.includes(searchValue));
+            });
+        });
+    });
+    </script>
+{% endblock %}

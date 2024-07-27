@@ -8,6 +8,7 @@ import json
 from flask_wtf.csrf import CSRFProtect
 from datetime import datetime
 from alg_collaborativeFiltering import train_model
+from alg_collaborativeFilteringSearch import train_search_model, search_posts
 from validation import validate_phone_number, is_unique, ensure_admin_exists  # Import the validation functions
 from controllers.posts.routes import post_create, post_delete, post_like, post_unlike, post_edit, posts_by_topic, details_post
 from controllers.answers.routes import answer_create, answer_edit, answer_delete
@@ -65,12 +66,14 @@ def forum():
     check_and_remove_orphans()
     
     user_id = session.get('user_id')
-    posts = list(posts_collection.find().sort("date", -1))
+    recommendations = load_recommendations(user_id)  # Load recommendations for current user
+    recommendation_ids = [ObjectId(rec["_id"]) for rec in recommendations]
+    posts = list(posts_collection.find({"_id": {"$nin": recommendation_ids}}).sort("date", -1))
     topics = list(topics_collection.find())
     
     # Kumpulkan semua likes dari pengguna yang sedang login
     user_likes = set(str(like['post_id']) for like in likes_collection.find({"user_id": user_id}))
-    user = users_collection.find_one({'_id':ObjectId(user_id)})
+
     # Fetch the number of likes for each post
     for post in posts:
         post['answer_count'] = answers_collection.count_documents({"post_id":str(post['_id'])})
@@ -78,7 +81,6 @@ def forum():
         post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
     
 
-    recommendations = load_recommendations(user_id)  # Load recommendations for current user
     for post in recommendations:
         post['answer_count'] = answers_collection.count_documents({"post_id":str(post['_id'])})
         post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
@@ -130,6 +132,38 @@ def edit_answer(answer_id):
 @app.route('/delete_answer/<answer_id>', methods=['POST'])
 def delete_answer(answer_id):
     return answer_delete(answer_id, app.config['UPLOAD_ANSWER'])
+
+
+@app.route('/search', methods=['GET'])
+def search():
+    query = request.args.get('query')
+    user_id = request.args.get('user_id')
+    
+    # Construct search query
+    search_query = {
+        "$or": [
+            { "date": { "$regex": query, "$options": "i" } },
+            { "question": { "$regex": query, "$options": "i" } },
+            { "topic": { "$regex": query, "$options": "i" } },
+            { "id_user": { "$regex": query, "$options": "i" } },
+            { "title": { "$regex": query, "$options": "i" } },
+            { "post_pic": { "$regex": query, "$options": "i" } }
+        ]
+    }
+    
+    results = list(posts_collection.find(search_query))
+    
+    recommendations = []
+    topics = list(topics_collection.find())
+    if query:
+        train_search_model(query)
+        recommendations = search_posts(query, user_id)
+    
+    # Filter out recommended posts from results
+    recommended_post_ids = [ObjectId(post['_id']) for post in recommendations]
+    filtered_results = [post for post in results if post['_id'] not in recommended_post_ids]
+    
+    return render_template('forum/search.html', results=filtered_results,topics=topics, recommendations=recommendations)
 
 
 if __name__ == '__main__':
