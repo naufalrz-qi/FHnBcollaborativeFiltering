@@ -1,23 +1,22 @@
 {% extends "layouts/base_landing.html" %}
 
-{% block title %}Fohety - Home{% endblock %}
+{% block title %}Wise - Home{% endblock %}
 
 {% block landing %}
 <!-- Hero Section -->
 <section class="bg-transparent text-center py-auto d-flex align-items-center justify-content-center" style="padding-top: 200px; padding-bottom: 200px; color: #ffffff; text-shadow: 0.5px 2px 4px #000000;">
     <div>
-        <h1 class="display-4" style="font-weight: 700;">Welcome to Fohety</h1>
-        <p class="lead">Your go-to forum for all things health and beauty. Join our community to share and learn.</p>
-        <a href="{{ url_for('register') }}" class="btn btn-success btn-lg shadow" style="text-shadow: none;">Get Started</a>
+        <h1 class="display-4" style="font-weight: 700;">Welcome to Wise</h1>
+        <p class="lead px-5">Your go-to forum for all things education and academics. Join our community to share and learn.</p>
+        <a href="{{ url_for('register') }}" class="btn btn-info text-white bg-gradient btn-lg shadow" style="text-shadow: none;">Get Started</a>
     </div>
 </section>
 
-
 <!-- About Section -->
-<section id="about" class="py-5 bg-success-subtle bg-gradient">
+<section id="about" class="py-5 bg-info-subtle bg-gradient">
     <div class="container p-5">
         <h2 class="text-center">About</h2>
-        <p class="lead text-center">Fohety is a community-driven platform where members can discuss, share, and discover tips and advice on health and beauty. Whether you're looking for skincare routines, fitness tips, or the latest in beauty trends, Fohety is your place to be.</p>
+        <p class="lead text-center px-5">Wise is a community-driven platform where members can discuss, share, and discover tips and advice on education and academics. Whether you're looking for math tips, language learning, or insights into the latest academic trends, Wise is your place to be.</p>
     </div>
 </section>
 
@@ -27,28 +26,25 @@
         <h2 class="text-center">Features</h2>
         <div class="row text-center">
             <div class="col-md-4">
-                <div class="rounded bg-gradient bg-info text-body p-5">
+                <div class="rounded bg-gradient bg-info-subtle text-body p-5 shadow">
                     <span class="display-4">🧑‍💻</span>
                     <h4>Community Support</h4>
-                    <p>Connect with like-minded individuals and receive support and encouragement on your health and beauty journey.</p>
+                    <p>Connect with like-minded individuals and receive support and encouragement on your educational journey.</p>
                 </div>
-                
-            </div>
-            <div class="col-md-4 ">
-                <div class="rounded bg-gradient bg-warning text-body p-5">
-                    <span class="display-4">📚</span>
-                <h4>Expert Advice</h4>
-                <p>Get insights from experts in the fields of dermatology, nutrition, fitness, and more.</p>
-                </div>
-
             </div>
             <div class="col-md-4">
-                <div class="rounded bg-gradient bg-success text-body p-5">
+                <div class="rounded bg-gradient bg-danger-subtle text-body p-5 shadow">
+                    <span class="display-4">📚</span>
+                    <h4>Expert Advice</h4>
+                    <p>Get insights from experts in various academic fields including mathematics, science, literature, and more.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="rounded bg-gradient bg-warning-subtle text-body p-5 h-100 shadow">
                     <span class="display-4">📃</span>
                     <h4>Exclusive Content</h4>
-                    <p>Access exclusive content including tutorials, product reviews, and much more.</p>
+                    <p>Access exclusive content including tutorials, academic papers, and much more.</p>
                 </div>
-
             </div>
         </div>
     </div>
@@ -73,7 +69,7 @@
                         <label for="message" class="form-label">Message</label>
                         <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary">Send Message</button>
+                    <button type="submit" class="btn btn-info bg-gradient text-light">Send Message</button>
                 </form>
             </div>
         </div>

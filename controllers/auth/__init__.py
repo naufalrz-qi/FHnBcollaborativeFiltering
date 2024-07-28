@@ -9,5 +9,6 @@ mongo_uri = os.getenv('MONGO_URI')
 client = MongoClient(mongo_uri)
 db = client['collaborativefilteringtest']
 users_collection = db['users']
+posts_collection = db['posts']
 
 from . import routes

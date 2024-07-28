@@ -1,0 +1,53 @@
+{% extends "layouts/base_normal.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block style %}
+<style>
+    .profile-header {
+        display: flex;
+        align-items: center;
+    }
+    .profile-header img {
+        border-radius: 50%;
+        height: 150px;
+        width: 150px;
+        object-fit: cover;
+        margin-right: 20px;
+    }
+    .profile-details {
+        display: flex;
+        flex-direction: column;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container bg-white rounded shadow p-5">
+    <div class="profile-header">
+        {% if user.profile_pic %}
+            <img src="{{ '/'+user.profile_pic }}" alt="Profile Picture">
+        {% else %}
+            <img src="{{ url_for('static', filename='uploads/profile_pics/default.jpg') }}" alt="Profile Picture">
+        {% endif %}
+        <div class="profile-details">
+            <h2>{{ user.profile_name }}</h2>
+            <p>Username: {{ user.username }}</p>
+            <p>Email: {{ user.email }}</p>
+            <p>Phone Number: {{ user.phone_number }}</p>
+            <p>Gender: {{ user.gender }}</p>
+            <p>Role: {{ user.role }}</p>
+        </div>
+    </div>
+
+    <h3 class="mt-4">Posts by {{ user.profile_name }}</h3>
+    <ul class="list-group">
+        {% for post in posts %}
+            <li class="list-group-item">
+                <a href="{{ url_for('post_detail', post_id=post['_id']) }}">{{ post.title }}</a>
+                <p>{{ post.question }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

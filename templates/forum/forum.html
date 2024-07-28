@@ -15,16 +15,20 @@
     <div class="col-lg-9">
         {% if session['user_id'] %}
         <div class="container shadow bg-white rounded p-4 mb-3">
-            <input type="text" id="createPostInput" class="form-control" placeholder="Click here to create a new post" readonly>
+            <div class="input-group">
+                <i class="bi bi-plus-square-fill input-group-text text-primary fs-5" id="create-input-group"></i>
+                <input type="text" id="createPostInput" class="form-control" placeholder="Click here to create a new post" readonly>
+            </div>
             <div id="createPostForm" style="display: none;">
                 {% include 'posts/create_post.html' %}
             </div>
         </div>
         {% endif %}
 
-            <div class="no-scrollbar" style="overflow-y: scroll; height: 200vh;">
+            <div class="overflow-y-scroll" style="max-height: 200vh;">
                 {% if session['user_id'] %}
-                    <h3 class="text-body-tertiary">Recommended Posts</h3>
+                    <h3 class="mt-4 text-body-tertiary">Recommended Posts</h3>
+                    <hr>
                     <ul class="list-group rounded">
                         {% if not recommendations %}
                             <div class="container bg-info-subtle rounded p-4">
@@ -62,7 +66,7 @@
                                 </div>
                             
                                 <p class="text-secondary"><small>Published at {{ post.date }}</small></p>
-                                <p class="px-lg-4 justify-pre-wrap">{{ post.question }}</p>
+                                <p class="justify-pre-wrap">{{ post.question }}</p>
                             
                                 {% if post.post_pic %}
                                     <img src="{{ url_for('static', filename='uploads/post/img/' + post.post_pic) }}" alt="Post Picture" id="post-image" class="img-fluid mb-2 rounded object-fit-cover w-100" style="height: 300px;">
@@ -94,9 +98,10 @@
                         {% endfor %}
                     </ul>
                 
-                <hr>
                 
                 <h3 class="mt-4 text-body-tertiary">Posts</h3>
+                <hr>
+
                 {% endif %}
                 <ul class="list-group rounded">
                     {% if not posts %}
@@ -132,7 +137,7 @@
                         </div>
                     
                         <p class="text-secondary"><small>Published at {{ post.date }}</small></p>
-                        <p class="px-lg-4 justify-pre-wrap">{{ post.question }}</p>
+                        <p class="justify-pre-wrap">{{ post.question }}</p>
                      
                         {% if post.post_pic %}
                             <img src="{{ url_for('static', filename='uploads/post/img/' + post.post_pic) }}" alt="Post Picture" id="post-image" class="img-fluid mb-2 rounded object-fit-cover w-100" style="height: 300px;">
@@ -166,7 +171,7 @@
     </div>
     <div class="col-lg-3">
         <div class="container shadow bg-white rounded p-5">
-            <input type="text" id="searchInput" class="form-control mb-4" placeholder="Search post...">
+            <input type="text" id="searchInput" class="form-control mb-4" placeholder="Find...">
             <h5>Topics</h5>
             <div class="d-block">
                 <a href="{{ url_for('topics') }}" class="btn btn-secondary py-1 px-2 mb-3">
@@ -226,11 +231,13 @@
     <script>
     $(document).ready(function() {
         var createPostInput = document.getElementById('createPostInput');
+        var createInputGroup = document.getElementById('create-input-group');
         var createPostForm = document.getElementById('createPostForm');
 
         createPostInput.addEventListener('click', function() {
             createPostForm.style.display = 'block';
             createPostInput.style.display = 'none';
+            createInputGroup.style.display = 'none';
         });
 
         document.addEventListener('click', function(event) {
@@ -239,6 +246,8 @@
             if (!isClickInside) {
                 createPostForm.style.display = 'none';
                 createPostInput.style.display = 'block';
+                createInputGroup.style.display = 'block';
+
             }
         });
 
@@ -289,6 +298,11 @@
         });
     });
     </script>
+
+
+    {% else %}
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         document.getElementById('searchInput').addEventListener('input', function() {
             const searchValue = this.value.toLowerCase();
@@ -307,10 +321,6 @@
         });
         
     </script>
-
-    {% else %}
-    
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
     $(document).ready(function() {
         var isExpanded = false;

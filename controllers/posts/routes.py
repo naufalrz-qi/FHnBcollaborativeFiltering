@@ -20,6 +20,7 @@ def details_post(post_id):
         flash("Post not found", "danger")
         return redirect(url_for('forum'))
 
+    post['answer_count'] = answers_collection.count_documents({"post_id": post_id})
     post['like_count'] = likes_collection.count_documents({"post_id": post_id})
     post['_id'] = str(post['_id'])  # Ensure _id is a string
     for answer in answers:
@@ -42,7 +43,6 @@ def posts_by_topic(topic_name):
     recommendations = load_recommendations_by_topic(user_id, topic_name)
     recommendation_ids = [ObjectId(rec["_id"]) for rec in recommendations]
     posts = list(posts_collection.find({"_id": {"$nin": recommendation_ids}, "topic": topic_name}).sort("date", -1))
-    user = users_collection.find_one({'_id':ObjectId(user_id)})
     # Fetch the number of likes for each post
     for post in posts:
         post['answer_count'] = answers_collection.count_documents({"post_id":str(post['_id'])})
