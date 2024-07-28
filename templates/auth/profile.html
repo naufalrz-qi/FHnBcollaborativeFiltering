@@ -31,7 +31,15 @@
             <img src="{{ url_for('static', filename='uploads/profile_pics/default.jpg') }}" alt="Profile Picture">
         {% endif %}
         <div class="profile-details">
-            <h2>{{ user.profile_name }}</h2>
+            <p><span class="h1">{{ user.profile_name }}</span> <small>{% if user.status == 'verified' %}
+                {% if user.role == 'expert' %}
+                    <span class="badge rounded-pill text-bg-primary">Expert</span>
+                {% elif user.role == 'admin' %}
+                    <span class="badge rounded-pill text-bg-danger">Admin</span>
+                {% elif user.role == 'normal' %}
+                    <span class="badge rounded-pill text-bg-warning">Genius</span>
+                {% endif %}
+            {% endif %}</small></p>
             <p>Username: {{ user.username }}</p>
             <p>Email: {{ user.email }}</p>
             <p>Phone Number: {{ user.phone_number }}</p>

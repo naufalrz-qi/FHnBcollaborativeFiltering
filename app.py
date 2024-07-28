@@ -15,6 +15,7 @@ from controllers.answers.routes import answer_create, answer_edit, answer_delete
 from controllers.auth.routes import auth_login, auth_logout, auth_register, auth_settings, auth_profile
 from controllers.algorithm.routes import load_recommendations
 import subprocess
+import re
 
 # Load environment variables from .env file
 load_dotenv()
@@ -51,6 +52,21 @@ def run_checkers():
 def before_request():
     run_checkers()
 
+def is_url(string):
+    # Regex pattern to match URLs
+    url_pattern = re.compile(
+        r'^(?:http|ftp)s?://'  # http:// or https:// or ftp://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+        r'localhost|'  # localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'  # ...or ipv4
+        r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6
+        r'(?::\d+)?'  # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
+    return re.match(url_pattern, string) is not None
+
+# Register the function with Jinja2 environment
+app.jinja_env.globals.update(is_url=is_url)
 
 @app.route('/')
 def index():

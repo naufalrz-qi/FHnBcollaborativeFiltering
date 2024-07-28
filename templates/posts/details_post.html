@@ -19,6 +19,16 @@
                 color: #007bff;
                 text-decoration: underline;
             }
+            .source-content {
+                display: none; /* Initially hide the source content */
+            }
+            
+            .see-source-link {
+                cursor: pointer;
+                color: #007bff;
+                text-decoration: underline;
+            }
+            
         </style>
     {% endblock %}
 
@@ -113,6 +123,14 @@
             <div class="form-group">
                 <textarea class="form-control" name="answer" placeholder="Your answer" required></textarea>
             </div>
+            <div class="form-group mb-3">
+                <label for="source">Source:</label>
+                <div id="source-container">
+                    <small id="sourceHelp" class="form-text text-muted">Masukkan sumber informasi atau referensi (misalnya, URL, buku, artikel).</small>
+                    <input class="form-control mb-2" name="source[]" id="source" placeholder="Masukkan sumber informasi atau referensi yang Anda gunakan"/>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="addSourceField()">Tambah Sumber</button>
+            </div>
             <div class="form-group mt-2">
                 <label for="answer_pic">Attach a picture (optional):</label>
                 <input type="file" name="answer_pic" class="form-control" id="answer_pic">
@@ -163,6 +181,28 @@
                         <img id="img-{{ answer._id }}" src="{{ url_for('static', filename='uploads/answer/img/' + answer.answer_pic) }}" alt="Answer Picture" class="img-fluid mb-3 rounded answer-img" data-answer-id="{{ answer._id }}" style="height: 200px;">
                     {% endif %}
                     </div>
+                    <div class="answer-source mt-2">
+                        <p><strong>Source:</strong></p> 
+                            <div class="source-content bg-success-subtle rounded-3 p-3">
+                                <ul>
+                                {% if answer.source and answer.source != [""] %}
+                                    {% for item in answer.source %}
+                                       <li>
+                                        {% if is_url(item) %}
+                                        <a href="{{ item }}" target="_blank">{{ item }}</a>
+                                    {% else %}
+                                        {{ item }}
+                                    {% endif %}
+                                       </li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li>No source available</li>
+                                {% endif %}
+                            </ul>
+                            </div>
+                            <a href="#" class="see-source-link" onclick="toggleSourceContent(this); return false;">See Source</a>
+                    </div>
+                    
                 </div>
 
 
@@ -201,6 +241,47 @@
 
     {% block script %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        function toggleSourceContent(element) {
+            var content = element.previousElementSibling;
+            if (content.style.display === "none" || content.style.display === "") {
+                content.style.display = "block";
+                element.textContent = 'Hide Source';
+            } else {
+                content.style.display = "none";
+                element.textContent = 'See Source';
+            }
+        }
+        
+        function addSourceField() {
+            const container = document.getElementById('source-container');
+            const newSourceField = document.createElement('input');
+            newSourceField.className = 'form-control mb-2';
+            newSourceField.name = 'source[]';
+            newSourceField.placeholder = 'Masukkan sumber informasi atau referensi yang Anda gunakan';
+            container.appendChild(newSourceField);
+        }
+        function addSourceFieldEdit() {
+            const container = document.getElementById('source-container-edit');
+            const newSourceField = document.createElement('input');
+            newSourceField.className = 'form-control mb-2';
+            newSourceField.name = 'source[]';
+            newSourceField.placeholder = 'Masukkan sumber informasi atau referensi yang Anda gunakan';
+            container.appendChild(newSourceField);
+        }
+        document.getElementById('source').addEventListener('input', function () {
+            const value = this.value;
+            const isValid = value.match(/^https?:\/\/[^\s$.?#].[^\s]*$/gm) || value.trim().length > 0;
+            if (!isValid) {
+                this.classList.add('is-invalid');
+                document.getElementById('sourceHelp').textContent = 'Sumber harus berupa URL yang valid atau teks yang tidak kosong.';
+            } else {
+                this.classList.remove('is-invalid');
+                document.getElementById('sourceHelp').textContent = 'Masukkan sumber informasi atau referensi (misalnya, URL, buku, artikel).';
+            }
+        });
+    </script>
     <script>
     $(document).ready(function() {
         // Function to handle like/unlike button clicks
@@ -234,78 +315,118 @@
             });
         });
 
-        // Function to handle answer form submission
-        $('#answer-form').submit(function(event) {
-            event.preventDefault();
-            var formData = new FormData(this);
-            var session = $('#new_answers').data('user-id');
-            $.ajax({
-                type: 'POST',
-                url: $(this).attr('action'),
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(response) {
-                    if (response.success) {
-                        // Create the new answer HTML
-                        var newAnswer = `
-                            <div id="answer-${response.answer._id}" class="answer border-bottom mb-3 bg-info-subtle bg-gradient rounded p-4">
-                                <small class="text-secondary">Answered by ${response.answer.username} on ${response.answer.date}</small>
-                                <div class="d-flex justify-content-between">
-                                    <p class="answer-content">${response.answer.content}</p>
-                                    ${response.answer.user_id == session ? renderDropdown(response.answer._id) : ''}
-                                </div>
-                            <div class="answer-image-container" id="answer-image-container-${ response.answer._id }">
-                                ${response.answer.answer_pic ? '<p class="see-attachment" onclick="toggleImage(this)">See attachment</p><img src="/static/uploads/answer/img/' + response.answer.answer_pic + '" alt="Answer Picture" class="img-fluid mb-3 rounded answer-img" style="height: 200px;">' : ''}
-                            </div>
-                            </div>
-    
-                            <!-- Modal for editing the new answer -->
-                            <div class="modal fade" id="editAnswerModal${response.answer._id}" tabindex="-1" role="dialog" aria-labelledby="editAnswerModalLabel${response.answer._id}" aria-hidden="true">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="editAnswerModalLabel${response.answer._id}">Edit Answer</h5>
-                                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <form class="edit-answer-form" data-answer-id="${response.answer._id}" method="POST" enctype="multipart/form-data">
-                                                <input type="hidden" name="csrf_token" value="${$('input[name="csrf_token"]').val()}">
-                                                <textarea class="form-control" name="content">${response.answer.content}</textarea>
-                                                <div class="mt-2">
-                                                    <input type="file" name="answer_pic" class="form-control">
-                                                </div>
-                                                <div class="form-check mt-2">
-                                                    <input class="form-check-input" type="checkbox" name="remove_pic" value="remove" id="remove_pic_${response.answer._id}">
-                                                    <label class="form-check-label" for="remove_pic_${response.answer._id}">
-                                                        Remove existing picture
-                                                    </label>
-                                                </div>
-                                                <button type="submit" class="btn btn-primary mt-3">Update Answer</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-    
-                        $('#ifnoAnswer').addClass('d-none');
-                        $('#new_answers').append(newAnswer);
-                        $('#answer-form')[0].reset();
-    
-                        // Reinitialize Bootstrap modal functionality
-                        var newModal = new bootstrap.Modal(document.getElementById(`editAnswerModal${response.answer._id}`));
-                    } else {
-                        alert(response.message);
+           // Function to handle answer form submission
+$('#answer-form').submit(function(event) {
+    event.preventDefault();
+    var formData = new FormData(this);
+    var session = $('#new_answers').data('user-id');
+    $.ajax({
+        type: 'POST',
+        url: $(this).attr('action'),
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                // Create the new answer HTML
+                var answerBadge = '';
+                if (response.answer.author_status === 'verified') {
+                    if (response.answer.author_role === 'expert') {
+                        answerBadge = '<span class="badge rounded-pill text-bg-primary">Expert</span>';
+                    } else if (response.answer.author_role === 'admin') {
+                        answerBadge = '<span class="badge rounded-pill text-bg-danger">Admin</span>';
+                    } else if (response.answer.author_role === 'normal') {
+                        answerBadge = '<span class="badge rounded-pill text-bg-warning">Genius</span>';
                     }
-                },
-                error: function() {
-                    alert('Something went wrong. Please try again.');
                 }
-            });
-        });
+
+                var newAnswer = `
+                    <div id="answer-${response.answer._id}" class="answer border-bottom mb-3 bg-info-subtle bg-gradient rounded p-4">
+                        <small class="text-secondary">Answered by <a href="/profile/${response.answer.user_id}">${response.answer.username}</a> ${answerBadge} on ${response.answer.date}</small>
+                        <div class="d-flex justify-content-between">
+                            <p class="answer-content">${response.answer.content}</p>
+                            ${response.answer.user_id == session ? renderDropdown(response.answer._id) : ''}
+                        </div>
+                        <div class="answer-image-container" id="answer-image-container-${response.answer._id}">
+                            ${response.answer.answer_pic ? '<p class="see-attachment" onclick="toggleImage(this)">See attachment</p><img src="/static/uploads/answer/img/' + response.answer.answer_pic + '" alt="Answer Picture" class="img-fluid mb-3 rounded answer-img" style="height: 200px;">' : ''}
+                        </div>
+                        <!-- Display answer source -->
+                        <div class="answer-source mt-2">
+                            <p><strong>Source:</strong></p> 
+                            <div class="source-content bg-success-subtle rounded-3 p-3">
+                                <ul>
+                                    ${response.answer.source.map(item => `<li>${isUrl(item) ? `<a href="${item}" target="_blank">${item}</a>` : item}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <a href="#" class="see-source-link" onclick="toggleSourceContent(this); return false;">See Source</a>
+                        </div>
+                    </div>
+
+                    <!-- Modal for editing the new answer -->
+                    <div class="modal fade" id="editAnswerModal${response.answer._id}" tabindex="-1" role="dialog" aria-labelledby="editAnswerModalLabel${response.answer._id}" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editAnswerModalLabel${response.answer._id}">Edit Answer</h5>
+                                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="edit-answer-form" data-answer-id="${response.answer._id}" method="POST" enctype="multipart/form-data">
+                                        <input type="hidden" name="csrf_token" value="${$('input[name="csrf_token"]').val()}">
+                                        <textarea class="form-control" name="content">${response.answer.content}</textarea>
+                                        <!-- Display answer source -->
+                                        <div class="form-group mb-3">
+                                            <label for="source">Source:</label>
+                                            <div id="source-container-edit">
+                                                <small id="sourceHelp" class="form-text text-muted">Masukkan sumber informasi atau referensi (misalnya, URL, buku, artikel).</small>
+                                                ${response.answer.source.map(item => `<input class="form-control mb-2" name="source[]" placeholder="Masukkan sumber informasi atau referensi yang Anda gunakan" value="${item}"/>`).join('')}
+                                            </div>
+                                            <button type="button" class="btn btn-secondary" onclick="addSourceFieldEdit()">Tambah Sumber</button>
+                                        </div>
+                                        <div class="mt-2">
+                                            <input type="file" name="answer_pic" class="form-control">
+                                        </div>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="checkbox" name="remove_pic" value="remove" id="remove_pic_${response.answer._id}">
+                                            <label class="form-check-label" for="remove_pic_${response.answer._id}">
+                                                Remove existing picture
+                                            </label>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary mt-3">Update Answer</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                $('#ifnoAnswer').addClass('d-none');
+                $('#new_answers').append(newAnswer);
+                $('#answer-form')[0].reset();
+
+                // Reinitialize Bootstrap modal functionality
+                var newModal = new bootstrap.Modal(document.getElementById(`editAnswerModal${response.answer._id}`));
+            } else {
+                alert(response.message);
+            }
+        },
+        error: function() {
+            alert('Something went wrong. Please try again.');
+        }
+    });
+});
+
+// Helper function to determine if a string is a URL
+function isUrl(string) {
+    try {
+        new URL(string);
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
         
         // Function to toggle image visibility
         window.toggleImage = function(element) {
@@ -369,6 +490,7 @@ $(document).on('submit', '.edit-answer-form', function(event) {
             if (response.success) {
                 var answerElement = $(`#answer-${answerId}`);
                 answerElement.find('.answer-content').text(response.answer.content);
+                answerElement.find('.answer-source').html(`<strong>Source:</strong> ${response.answer.source}`);
 
                 var imageContainer = $(`#answer-image-container-${answerId}`);
 

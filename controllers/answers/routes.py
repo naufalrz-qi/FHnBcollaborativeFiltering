@@ -15,6 +15,7 @@ def answer_create(post_id, path, allowedFile):
 
     user_id = session.get('user_id')
     answer_content = request.form['answer']
+    answer_sources = request.form.getlist('source[]')
     answer_pic = None
 
     # Handle file upload
@@ -35,6 +36,7 @@ def answer_create(post_id, path, allowedFile):
         "post_id": str(post_id),
         "user_id": user_id,
         "content": answer_content,
+        "source": answer_sources,
         "answer_pic": answer_pic,
         "date": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     }
@@ -46,6 +48,7 @@ def answer_create(post_id, path, allowedFile):
 # Convert ObjectId fields to strings
     answer['post_id'] = str(answer['post_id'])
     answer['user_id'] = str(answer['user_id'])
+    answer_source = answer['source']
     
 
     return jsonify(success=True, answer=answer)
@@ -66,6 +69,8 @@ def answer_edit(answer_id, path, allowedFile):
 
     if request.method == 'POST':
         content = request.form.get('content')
+        answer_sources = request.form.getlist('source[]')
+        print(answer_sources)
         remove_pic = request.form.get('remove_pic') == 'on'
         answer_pic = answer.get('answer_pic', '')
 
@@ -95,7 +100,7 @@ def answer_edit(answer_id, path, allowedFile):
 
         answers_collection.update_one(
             {"_id": ObjectId(answer_id)},
-            {"$set": {"content": content, "answer_pic": answer_pic}}
+            {"$set": {"content": content,"source":answer_sources, "answer_pic": answer_pic}}
         )
 
         updated_answer = answers_collection.find_one({"_id": ObjectId(answer_id)})
