@@ -19,18 +19,24 @@ def details_post(post_id):
     if not post:
         flash("Post not found", "danger")
         return redirect(url_for('forum'))
-
+    
     post['answer_count'] = answers_collection.count_documents({"post_id": post_id})
     post['like_count'] = likes_collection.count_documents({"post_id": post_id})
     post['_id'] = str(post['_id'])  # Ensure _id is a string
-    for answer in answers:
-        user_answer = users_collection.find_one({"_id": ObjectId(answer['user_id'])})
-        answer['username'] = user_answer['username']
     user_likes = set(str(like['post_id']) for like in likes_collection.find({"user_id": session.get('user_id')}))
     user = users_collection.find_one({'_id': ObjectId(post['id_user'])})
-    profilename = user['profile_name']
+    post['author'] = user['username']
+    post['author_role'] = user['role']
+    post['author_status'] = user['status']
+    
+    for answer in answers:
+        answerer = users_collection.find_one({'_id': ObjectId(answer['user_id'])})
+        answer['author'] = answerer['username']
+        answer['author_role'] = answerer['role']
+        answer['author_status'] = answerer['status']
+    
 
-    return render_template('posts/details_post.html', post=post,answers=answers, profilename=profilename, user_likes=user_likes)
+    return render_template('posts/details_post.html', post=post,answers=answers, user_likes=user_likes)
 
 def posts_by_topic(topic_name):
     # Pastikan user terautentikasi
@@ -45,16 +51,35 @@ def posts_by_topic(topic_name):
     posts = list(posts_collection.find({"_id": {"$nin": recommendation_ids}, "topic": topic_name}).sort("date", -1))
     # Fetch the number of likes for each post
     for post in posts:
-        post['answer_count'] = answers_collection.count_documents({"post_id":str(post['_id'])})
+        user = users_collection.find_one({'_id': ObjectId(post['id_user'])})
+        post['answer_count'] = answers_collection.count_documents({"post_id": str(post['_id'])})
         post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
         post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
-    # Temukan semua post yang sesuai dengan topik yang diberikan
+        post['author'] = user['username']
+        post['author_role'] = user['role']
+        post['author_status'] = user['status']
+    
     for post in recommendations:
-        post['answer_count'] = answers_collection.count_documents({"post_id":str(post['_id'])})
+        user = users_collection.find_one({'_id': ObjectId(post['id_user'])})
+        post['answer_count'] = answers_collection.count_documents({"post_id": str(post['_id'])})
         post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
         post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
+        post['author'] = user['username']
+        post['author_role'] = user['role']
+        post['author_status'] = user['status']
     return render_template('forum/forum.html', posts=posts,topics=topics, user_likes=user_likes, recommendations=recommendations)
 
+def post_view():
+    if 'username' not in session and session['role'] != 'admin':
+        return redirect(url_for('login'))
+
+    posts = list(posts_collection.find())
+    # Join with user collection to get author details
+    for post in posts:
+        user = users_collection.find_one({"_id": ObjectId(post["id_user"])})
+        post["author"] = user["username"] if user else "Unknown"
+
+    return render_template('admin/features/posts.html', posts=posts)
 
 def post_create(path, allowedFile):
     if 'username' not in session:
@@ -184,8 +209,10 @@ def post_delete(post_id,path):
 
     train_model()  # Update recommendations
     flash('Post deleted successfully!')
-    return redirect(url_for('forum'))
-
+    if session['role'] != 'admin':
+        return redirect(url_for('forum'))
+    else:
+        return redirect(url_for('view_posts'))
 
 
 def post_like(post_id):

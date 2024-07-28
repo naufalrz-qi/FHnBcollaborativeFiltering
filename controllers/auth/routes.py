@@ -20,6 +20,7 @@ def auth_login():
             session['name'] = user['profile_name']
             session['photo'] = user['profile_pic']
             session['role'] = user['role']
+            session['status'] = user['status']
             session['user_id'] = str(user['_id'])  # Store user ID in session
             if user['role'] == 'admin':
                 return redirect(url_for('admin_dashboard'))
@@ -38,12 +39,12 @@ def auth_profile(user_id):
     user = users_collection.find_one({"_id": ObjectId(user_id)})
     if not user:
         flash('User not found.')
-        return redirect(url_for('index'))
+        return redirect(url_for('forum'))
     
     # Pastikan user memiliki peran 'normal' atau 'expert'
-    if user['role'] not in ['normal', 'expert']:
+    if user['role'] == "admin":
         flash('You do not have permission to view this profile.')
-        return redirect(url_for('index'))
+        return redirect(url_for('forum'))
 
     # Ambil post yang dibuat oleh user
     posts = posts_collection.find({"id_user": str(user['_id'])})
@@ -181,5 +182,6 @@ def auth_settings():
     return render_template('auth/settings.html', user=user)
 
 def auth_logout():
-    session.clear()
-    return redirect(url_for('index'))
+    if request.method == 'POST':
+        session.clear()
+        return redirect(url_for('index'))

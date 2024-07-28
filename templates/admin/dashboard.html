@@ -1,4 +1,4 @@
-{% extends "layouts/base_normal.html" %}
+{% extends "layouts/base_admin.html" %}
 {% block style %}
     <style>
         .dropdown-toggle::after {
@@ -11,5 +11,82 @@
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
+<div class="container p-5 bg-white rounded-4 shadow">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+            {% for message in messages %}
+            <div class="container bg-info-subtle rounded p-4">
+                <p class="m-0"><span>{{ message }}</span></p>
+            </div>
+            {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <div class="row">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow-sm bg-danger bg-gradient text-light">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <p class="card-text display-2" style="font-weight: 500;">{{ total_users }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow-sm bg-info bg-gradient text-light">
+                <div class="card-body">
+                    <h5 class="card-title">Total Topics</h5>
+                    <p class="card-text display-2" style="font-weight: 500;">{{ total_topics }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow-sm bg-success bg-opacity-75 bg-gradient text-light">
+                <div class="card-body">
+                    <h5 class="card-title">Latest Posts</h5>
+                    <p class="card-text display-2" style="font-weight: 500;">{{ total_latest_posts }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow-sm bg-success bg-opacity-50 bg-gradient text-light">
+                <div class="card-body">
+                    <h5 class="card-title">Total Posts</h5>
+                    <p class="card-text display-2" style="font-weight: 500;">{{ total_posts }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow-sm bg-primary bg-gradient text-light">
+                <div class="card-body">
+                    <h5 class="card-title">Total Likes</h5>
+                    <p class="card-text display-2" style="font-weight: 500;">{{ total_likes }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow-sm bg-primary bg-opacity-75 bg-gradient text-light">
+                <div class="card-body">
+                    <h5 class="card-title">Likes Today</h5>
+                    <p class="card-text display-2" style="font-weight: 500;">{{ total_likes_today }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow-sm bg-warning bg-gradient text-light">
+                <div class="card-body">
+                    <h5 class="card-title">Total Answers</h5>
+                    <p class="card-text display-2" style="font-weight: 500;">{{ total_answers }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow-sm bg-warning bg-opacity-75 bg-gradient text-light">
+                <div class="card-body">
+                    <h5 class="card-title">Answers Today</h5>
+                    <p class="card-text display-2" style="font-weight: 500;">{{ total_answers_today }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

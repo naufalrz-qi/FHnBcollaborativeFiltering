@@ -68,6 +68,4 @@ def check_and_remove_orphans():
     print("Integrity check completed.")
 
 if __name__ == "__main__":
-    while True:
-        check_and_remove_orphans()
-        sleep(3600)  # Menjalankan pemeriksaan setiap 1 jam
+    check_and_remove_orphans()

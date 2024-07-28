@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Normal User Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='node_modules/bootstrap-icons/font/bootstrap-icons.css') }}">
+    {% block style %}
+        
+    {% endblock %}
+    <style>
+        body{
+            padding-top: 4rem;
+        }
+        .sidebar {
+            top: 72px;
+            left: 0;
+            width: 250px;
+            height: calc(100vh - 72px);
+            padding: 20px;
+            position: fixed;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar p {
+            color: #405d72;
+            font-weight: 700;
+            text-decoration: none;
+            padding: 0.4rem;
+            border-radius: 0.8rem;
+
+        }
+
+        .sidebar a {
+            color: #474d53;
+            text-decoration: none;
+            padding: 0.4rem;
+            padding-left: 1rem;
+            border-radius: 0.8rem;
+
+        }
+
+        .sidebar a:hover {
+            color: #1f2f3c;
+            background-color: #00eaff30;
+        }
+
+        .sidebar .dropdown-toggle::after {
+            display: none;
+        }
+
+        /* Custom CSS for sidebar dropdowns */
+        .sidebar-dropdown {
+            position: relative;
+            /* Ensure dropdowns are positioned relative to parent */
+            display: none;
+            /* Hide dropdown by default */
+            margin-top: 0;
+            /* Remove any default margin that might cause gap */
+            border: none;
+            /* Remove any border */
+            box-shadow: none;
+            /* Remove any shadow */
+        }
+
+        /* Show the dropdown when the parent link is active/hovered */
+        .nav-item.dropdown:hover .sidebar-dropdown {
+            display: block;
+            /* Show dropdown on hover */
+            position: static;
+            /* Ensure dropdown stays within the flow of the document */
+        }
+
+        .sidebar .dropdown-menu {
+            background-color: #fff;
+            /* Same background as sidebar */
+            border-radius: 0;
+            /* Adjust radius to fit design */
+            box-shadow: none;
+            /* Remove shadow */
+            padding: 0;
+            /* Adjust padding as needed */
+        }
+
+        /* Custom CSS for sidebar dropdowns */
+        .sidebar .collapse {
+            background-color: #fff;
+            /* Same background as sidebar */
+            border-radius: 0;
+            /* Adjust radius to fit design */
+            box-shadow: none;
+            /* Remove shadow */
+            padding: 0.8rem;
+            /* Adjust padding as needed */
+            margin-left: 1rem;
+            /* Add left margin for nested items */
+        }
+
+        .sidebar .nav-link {
+            color: #474d53;
+            /* Adjust text color */
+            font-weight: 500;
+            /* Make text bold */
+            display: flex;
+            /* Align items in flex */
+            justify-content: space-between;
+            /* Space between text and icon */
+        }
+
+        .sidebar .dropdown-item {
+            /* Adjust padding as needed */
+            color: #474d53;
+            /* Adjust text color */
+        }
+
+        .sidebar .dropdown-item li a {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .sidebar .nav-item .nav-link .bi {
+            font-size: 1rem;
+            /* Adjust icon size */
+            margin-left: auto;
+            /* Align icon to the right */
+        }
+
+
+        .sidebar .dropdown-menu.show {
+            display: block;
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+    </style>
+    <style>
+        .navbar-toggler:focus{
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body class="bg-primary-subtle bg-gradient">
+    {% if 'username' in session %}
+    {% include 'layouts/components/header-admin.html' %}
+ 
+        
+    {% else %}
+    {% include 'layouts/components/header-guest.html' %}
+        
+  
+    {% endif %}
+
+
+    <main class="content">
+                {% block content %}
+                <!-- Main content will be injected here -->
+                {% endblock %}
+            </div>
+        </div>
+    </main>
+    {% block landing %}
+    <!-- Main content will be injected here -->
+    {% endblock %}
+
+    {% include 'layouts/components/footer.html' %}
+
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Ambil URL saat ini
+            var currentUrl = window.location.pathname;
+            console.log(currentUrl)
+
+            // Dapatkan semua link di sidebar
+            var sidebarLinks = document.querySelectorAll('.sidebar .nav-link, .sidebar .dropdown-item');
+            var dropdownToggles = document.querySelectorAll('.sidebar .nav-link.dropdown-toggle');
+
+            // Loop melalui setiap link
+            sidebarLinks.forEach(function(link) {
+                // Jika href link adalah sama dengan URL saat ini
+                var routes = link.getAttribute('href').split(' ');
+                console.log(routes)
+                if (routes.includes(currentUrl)) {
+                    // Tambahkan background color
+                    link.style.backgroundColor = "#00eaff50"; // Ganti dengan warna yang diinginkan
+
+                    // Jika link ini ada di dalam dropdown, buka dropdown
+                    var parentCollapse = link.closest('.collapse');
+                    if (parentCollapse) {
+                        parentCollapse.classList.add('show');
+                        link.style.backgroundColor = "#769cbb65";
+                        var dropdownToggle = parentCollapse.previousElementSibling;
+                        if (dropdownToggle && dropdownToggle.classList.contains('dropdown-toggle')) {
+                            dropdownToggle.style.backgroundColor =
+                                "#00eaff20"; // Ganti dengan warna yang diinginkan
+                            dropdownToggle.setAttribute('aria-expanded', 'true');
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+    {% block script %}
+        
+    {% endblock %}
+
+</body>
+</html>

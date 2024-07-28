@@ -26,6 +26,15 @@
 
     {% block content %}
     <div class="container shadow bg-white rounded p-lg-5 p-md-4 p-3">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+                {% for message in messages %}
+                <div class="container bg-info-subtle rounded p-4">
+                    <p class="m-0"><span>{{ message }}</span></p>
+                </div>
+                {% endfor %}
+        {% endif %}
+        {% endwith %}
         <div class="d-flex justify-content-between">
             <div>
                 <a href="/posts/topic/{{ post.topic }}" class="btn btn-info bg-gradient text-light py-1 px-2 mb-2"><small>{{ post.topic }}</small></a>
@@ -50,8 +59,17 @@
             {% endif %}
 
         </div>
-        <p class="text-secondary"><small>Published at {{ post.date }}<br>
-            by {{ profilename }}</small></p>
+        <p class="text-secondary"><small>Published at {{ post.date }} by
+            <a href="{{ url_for('profile', user_id=post.id_user ) }}">{{ post.author }}</a></small>  
+            {% if post.author_status == 'verified' %}
+            {% if post.author_role == 'expert' %}
+                <span class="badge rounded-pill text-bg-primary">Expert</span>
+            {% elif post.author_role == 'admin' %}
+                <span class="badge rounded-pill text-bg-danger">Admin</span>
+            {% elif post.author_role == 'normal' %}
+                <span class="badge rounded-pill text-bg-warning">Genius</span>
+            {% endif %}
+        {% endif %}</p>
 
         <p class="justify-pre-wrap">{{ post.question }}</p>
         {% if post.post_pic %}
@@ -99,7 +117,7 @@
                 <label for="answer_pic">Attach a picture (optional):</label>
                 <input type="file" name="answer_pic" class="form-control" id="answer_pic">
             </div>
-            <button type="submit" class="btn btn-success mt-3">Post Answer</button>
+            <button type="submit" class="btn btn-info bg-gradient text-light mt-3">Post Answer</button>
         </form>
     </div>
     <div class="container shadow bg-light rounded p-lg-5 p-md-4 p-3 mt-4">
@@ -115,8 +133,16 @@
             <div id="new_answers" data-user-id="{{ session['user_id'] }}">
             </div>
             {% for answer in answers %}
-                <div id="answer-{{ answer._id }}" class="answer border-bottom mb-3 bg-success-subtle rounded p-4">
-                    <small class="text-secondary">Answered by {{ answer.username }} on {{ answer.date }}</small>
+                <div id="answer-{{ answer._id }}" class="answer border-bottom mb-3 bg-info-subtle bg-gradient rounded p-4">
+                    <small class="text-secondary">Answered by <a href="{{ url_for('profile', user_id=answer.user_id ) }}">{{ answer.author }}</a>  {% if answer.author_status == 'verified' %}
+                        {% if answer.author_role == 'expert' %}
+                            <span class="badge rounded-pill text-bg-primary">Expert</span>
+                        {% elif answer.author_role == 'admin' %}
+                            <span class="badge rounded-pill text-bg-danger">Admin</span>
+                        {% elif answer.author_role == 'normal' %}
+                            <span class="badge rounded-pill text-bg-warning">Genius</span>
+                        {% endif %}
+                    {% endif %} on {{ answer.date }}</small>
                     <div class="d-flex justify-content-between">
                         <p class="mb-1 answer-content">{{ answer.content }}</p>
                         {% if answer.user_id == session['user_id'] %}
@@ -192,11 +218,11 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        button.closest('form').find('.like-count').text(response.like_count);
+                        button.closest('li').find('.like-count').text(response.like_count);
                         if (action === 'like') {
-                            button.data('action', 'unlike').text('❤️');
+                            button.data('action', 'unlike').removeClass('btn-outline-secondary').addClass('btn-outline-danger').html('<i class="bi bi-hand-thumbs-up-fill"></i>');
                         } else {
-                            button.data('action', 'like').text('🤍');
+                            button.data('action', 'like').removeClass('btn-outline-danger').addClass('btn-outline-secondary').html('<i class="bi bi-hand-thumbs-up"></i>');
                         }
                     } else {
                         alert(response.message);
@@ -223,7 +249,7 @@
                     if (response.success) {
                         // Create the new answer HTML
                         var newAnswer = `
-                            <div id="answer-${response.answer._id}" class="answer border-bottom mb-3 bg-success-subtle rounded p-4">
+                            <div id="answer-${response.answer._id}" class="answer border-bottom mb-3 bg-info-subtle bg-gradient rounded p-4">
                                 <small class="text-secondary">Answered by ${response.answer.username} on ${response.answer.date}</small>
                                 <div class="d-flex justify-content-between">
                                     <p class="answer-content">${response.answer.content}</p>

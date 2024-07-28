@@ -39,9 +39,18 @@
                         <span class="mx-2 text-body-secondary fs-5 text-capitalize d-lg-none" style="font-weight: 700;">{{ session['username'] }}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        {% if session['role'] == 'admin' %}
+                        <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                            
+                        {% endif %}
                         <li><a class="dropdown-item" href="{{ url_for('profile',user_id=session['user_id']) }}">Profile</a></li>
                         <li><a class="dropdown-item" href="{{ url_for('settings' ) }}">Settings</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                        <li>
+                            <form method="POST" action="{{ url_for('logout') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="dropdown-item">Log Out</button>
+                            </form>
+                        </li>
                     </ul>
                 </li>
             </ul>

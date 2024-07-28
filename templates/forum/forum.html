@@ -13,6 +13,16 @@
 {% block content %}
 <div class="row">
     <div class="col-lg-9">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+                {% for message in messages %}
+                <div class="container bg-info-subtle rounded p-4">
+                    <p class="m-0"><span>{{ message }}</span></p>
+                </div>
+                {% endfor %}
+        {% endif %}
+        {% endwith %}
+    
         {% if session['user_id'] %}
         <div class="container shadow bg-white rounded p-4 mb-3">
             <div class="input-group">
@@ -65,7 +75,19 @@
                                     </div>
                                 </div>
                             
-                                <p class="text-secondary"><small>Published at {{ post.date }}</small></p>
+                                <p class="text-secondary"><small>Published at {{ post.date }}
+                                    by <a href="{{ url_for('profile', user_id=post.id_user ) }}">{{ post.author }}</a></small>  
+                                    {% if post.author_status == 'verified' %}
+                                    {% if post.author_role == 'expert' %}
+                                        <span class="badge rounded-pill text-bg-primary">Expert</span>
+                                    {% elif post.author_role == 'admin' %}
+                                        <span class="badge rounded-pill text-bg-danger">Admin</span>
+                                    {% elif post.author_role == 'normal' %}
+                                        <span class="badge rounded-pill text-bg-warning">Genius</span>
+                                    {% endif %}
+                                {% endif %}
+                            </p>
+                        
                                 <p class="justify-pre-wrap">{{ post.question }}</p>
                             
                                 {% if post.post_pic %}
@@ -136,7 +158,19 @@
                             </div>
                         </div>
                     
-                        <p class="text-secondary"><small>Published at {{ post.date }}</small></p>
+                        <p class="text-secondary"><small>Published at {{ post.date }}
+                            by <a href="{{ url_for('profile', user_id=post.id_user ) }}">{{ post.author }}</a></small>  
+                            {% if post.author_status == 'verified' %}
+                            {% if post.author_role == 'expert' %}
+                                <span class="badge rounded-pill text-bg-primary">Expert</span>
+                            {% elif post.author_role == 'admin' %}
+                                <span class="badge rounded-pill text-bg-danger">Admin</span>
+                            {% elif post.author_role == 'normal' %}
+                                <span class="badge rounded-pill text-bg-warning">Genius</span>
+                            {% endif %}
+                        {% endif %}
+                    </p>
+                
                         <p class="justify-pre-wrap">{{ post.question }}</p>
                      
                         {% if post.post_pic %}

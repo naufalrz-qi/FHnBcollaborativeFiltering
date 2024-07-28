@@ -3,10 +3,10 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-<div class="container p-4 rounded d-flex justify-content-center">
-    <img src="/static/img/register.jpeg" alt="" class="img-fluid rounded-start-4 shadow object-fit-cover" style="width: 500px;">
+<div class="container p-4 rounded d-lg-flex justify-content-center">
+    <img src="/static/img/register.jpeg" alt="" class="img-fluid shadow object-fit-cover" style="width: 500px;">
         <div class="justify-content-center">
-                <form method="post" action="{{ url_for('register') }}" class="shadow p-4 bg-white rounded" style="width: 60vh;">
+                <form method="post" action="{{ url_for('register') }}" class="shadow p-4 bg-white">
                     <h2 class="text-center mb-4">Register</h2>
                     {% with messages = get_flashed_messages() %}
                         {% if messages %}

@@ -43,7 +43,16 @@
                 {% for post in recommendations %}
                 <li class="list-group-item">
                     <a href="{{ url_for('post_detail', post_id=post['_id']) }}" class="list-group-item-action post-item">{{ post['title'] }}</a>
-                    <p class="post-date">Published at {{ post['date'] }}</p>
+                    <p class="post-date">Published at {{ post['date'] }} by <a href="{{ url_for('profile', user_id=post.id_user ) }}">{{ post.author }}</a>  
+                        {% if post.author_status == 'verified' %}
+                        {% if post.author_role == 'expert' %}
+                            <span class="badge rounded-pill text-bg-primary">Expert</span>
+                        {% elif post.author_role == 'admin' %}
+                            <span class="badge rounded-pill text-bg-danger">Admin</span>
+                        {% elif post.author_role == 'normal' %}
+                            <span class="badge rounded-pill text-bg-warning">Genius</span>
+                        {% endif %}
+                    {% endif %}</p>
                     <p class="post-description">{{ post['question'] }}</p>
                     {% if post['post_pic'] %}
                         <img src="{{ url_for('static', filename='uploads/post/img/' + post['post_pic']) }}" alt="Post Picture" class="img-thumbnail mb-2 rounded">
@@ -80,7 +89,16 @@
                 {% for post in results %}
                 <li class="list-group-item">
                     <a href="{{ url_for('post_detail', post_id=post['_id']) }}" class="list-group-item-action post-item">{{ post['title'] }}</a>
-                    <p class="post-date">Published at {{ post['date'] }}</p>
+                    <p class="post-date">Published at {{ post['date'] }} by <a href="{{ url_for('profile', user_id=post.id_user ) }}">{{ post.author }}</a>
+                        {% if post.author_status == 'verified' %}
+                        {% if post.author_role == 'expert' %}
+                            <span class="badge rounded-pill text-bg-primary">Expert</span>
+                        {% elif post.author_role == 'admin' %}
+                            <span class="badge rounded-pill text-bg-danger">Admin</span>
+                        {% elif post.author_role == 'normal' %}
+                            <span class="badge rounded-pill text-bg-warning">Genius</span>
+                        {% endif %}
+                    {% endif %}</p>
                     <p class="post-description">{{ post['question'] }}</p>
                     {% if post['post_pic'] %}
                         <img src="{{ url_for('static', filename='uploads/post/img/' + post['post_pic']) }}" alt="Post Picture" class="img-thumbnail mb-2 rounded">
