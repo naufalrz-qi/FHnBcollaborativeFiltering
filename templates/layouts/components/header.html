@@ -1,32 +1,60 @@
 <header class="navbar navbar-expand-lg navbar-light bg-white navbar-custom fixed-top shadow rounded mx-lg-5 mx-md-5 mx-3 my-4 p-lg-3 p-md-3 p-2">
     <div class="container">
-        <a class="navbar-brand" href="{{ url_for('forum' ) }}" style="font-weight: 700;">Fohety</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <a class="navbar-brand text-info-emphasis" href="{{ url_for('forum' ) }}" style="font-weight: 700;">Wise</a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
+            
             <ul class="navbar-nav ms-auto">
+                
+                
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('forum') }}">Forum</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('topics') }}">Topics</a>
                 </li>
-                 
+                <li class="nav-item">
+                    <form action="{{ url_for('search') }}" method="get" class="d-flex">
+                        <div class="input-group">
+                            <input type="hidden" name="user_id" value="{{ session['user_id'] }}">
+                            <input type="text" name="query" class="form-control mr-sm-2" placeholder="Search for posts..."/>
+                            <button type="submit" class="input-group-text bg-gradient d-flex align-items-center">
+                            <i class="bi bi-search"></i> <!-- Ikon pencarian dari Bootstrap Icons -->
+                        </button>
+                        </div>
+                        
+                    </form>
+                </li>
+                <hr class="d-lg-none">
+                <li class="nav-item">
+                    <a class="ms-lg-3 dropdown-toggle d-flex align-items-center text-decoration-none" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if session.get('photo') and session.get('photo') != '' %}
+                            <img src="{{ '/'+session.get('photo') }}" alt="Profile Picture" class="rounded-circle object-fit-cover" style="height: 40px; width: 40px;">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pics/default.jpg') }}" alt="Default Profile Picture" class="rounded-circle" style="height: 40px; width: 40px;">
+                        {% endif %}
+                        <span class="mx-2 text-body-secondary fs-5 text-capitalize d-lg-none" style="font-weight: 700;">{{ session['username'] }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        {% if session['role'] == 'admin' %}
+                        <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                            
+                        {% endif %}
+                        <li><a class="dropdown-item" href="{{ url_for('profile',user_id=session['user_id']) }}">Profile</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('settings' ) }}">Settings</a></li>
+                        <li>
+                            <form method="POST" action="{{ url_for('logout') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="dropdown-item">Log Out</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
             </ul>
-            <a class="ms-lg-3 dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                {% if session.get('photo') and session.get('photo') != '' %}
-                    <img src="{{ url_for('static', filename='uploads/profile_pics/' + session.get('photo')) }}" alt="Profile Picture" class="rounded-circle">
-                {% else %}
-                    <img src="{{ url_for('static', filename='uploads/profile_pics/default.jpg') }}" alt="Default Profile Picture" class="rounded-circle" style="height: auto; width: 40px;">
-                {% endif %}
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="#">Profile</a></li>
-                <li><a class="dropdown-item" href="#">Settings</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
-            </ul>
+           
         </div>
     </div>
 </header>

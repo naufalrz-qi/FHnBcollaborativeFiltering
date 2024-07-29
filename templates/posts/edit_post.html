@@ -26,11 +26,11 @@
 
     {% with messages = get_flashed_messages() %}
     {% if messages %}
-        <ul class="flashes">
             {% for message in messages %}
-                <li>{{ message }}</li>
+            <div class="container bg-info-subtle rounded p-4">
+                <p class="m-0"><span>{{ message }}</span></p>
+            </div>
             {% endfor %}
-        </ul>
     {% endif %}
     {% endwith %}
 
@@ -78,7 +78,7 @@
             {% endif %}
         </div>
 
-        <button type="submit" class="btn btn-success">Update Post</button>
+        <button type="submit" class="btn btn-info text-light bg-gradient">Update Post</button>
     </form>
 </div>
 {% endblock %}

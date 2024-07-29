@@ -4,9 +4,10 @@ from . import users_collection, topics_collection, posts_collection, likes_colle
 import os
 from bson import ObjectId
 from datetime import datetime
-from alg_collaborativeFiltering import train_model
+from alg_collaborativeFilteringwithEvaluation import train_model
 from validation import validate_phone_number, is_unique, ensure_admin_exists, allowed_file
 from controllers.algorithm.routes import load_recommendations_by_topic
+import json
 
 
 def details_post(post_id):
@@ -18,17 +19,24 @@ def details_post(post_id):
     if not post:
         flash("Post not found", "danger")
         return redirect(url_for('forum'))
-
+    
+    post['answer_count'] = answers_collection.count_documents({"post_id": post_id})
     post['like_count'] = likes_collection.count_documents({"post_id": post_id})
     post['_id'] = str(post['_id'])  # Ensure _id is a string
-    for answer in answers:
-        user_answer = users_collection.find_one({"_id": ObjectId(answer['user_id'])})
-        answer['username'] = user_answer['username']
     user_likes = set(str(like['post_id']) for like in likes_collection.find({"user_id": session.get('user_id')}))
     user = users_collection.find_one({'_id': ObjectId(post['id_user'])})
-    profilename = user['profile_name']
+    post['author'] = user['username']
+    post['author_role'] = user['role']
+    post['author_status'] = user['status']
+    
+    for answer in answers:
+        answerer = users_collection.find_one({'_id': ObjectId(answer['user_id'])})
+        answer['author'] = answerer['username']
+        answer['author_role'] = answerer['role']
+        answer['author_status'] = answerer['status']
+    
 
-    return render_template('posts/details_post.html', post=post,answers=answers, profilename=profilename, user_likes=user_likes)
+    return render_template('posts/details_post.html', post=post,answers=answers, user_likes=user_likes)
 
 def posts_by_topic(topic_name):
     # Pastikan user terautentikasi
@@ -38,18 +46,40 @@ def posts_by_topic(topic_name):
     user_id = session.get('user_id')
     topics = list(topics_collection.find())
     user_likes = set(str(like['post_id']) for like in likes_collection.find({"user_id": user_id}))
-    posts = list(posts_collection.find({"topic": topic_name}).sort("date", -1))
-    print(posts)
-    user = users_collection.find_one({'_id':ObjectId(user_id)})
+    recommendations = load_recommendations_by_topic(user_id, topic_name)
+    recommendation_ids = [ObjectId(rec["_id"]) for rec in recommendations]
+    posts = list(posts_collection.find({"_id": {"$nin": recommendation_ids}, "topic": topic_name}).sort("date", -1))
     # Fetch the number of likes for each post
     for post in posts:
-        post['answer_count'] = answers_collection.count_documents({"post_id":str(post['_id'])})
+        user = users_collection.find_one({'_id': ObjectId(post['id_user'])})
+        post['answer_count'] = answers_collection.count_documents({"post_id": str(post['_id'])})
         post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
         post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
-    # Temukan semua post yang sesuai dengan topik yang diberikan
-    recommendations = load_recommendations_by_topic(user_id, topic_name)
+        post['author'] = user['username']
+        post['author_role'] = user['role']
+        post['author_status'] = user['status']
+    
+    for post in recommendations:
+        user = users_collection.find_one({'_id': ObjectId(post['id_user'])})
+        post['answer_count'] = answers_collection.count_documents({"post_id": str(post['_id'])})
+        post['like_count'] = likes_collection.count_documents({"post_id": str(post['_id'])})
+        post['_id'] = str(post['_id'])  # Pastikan _id diubah menjadi string
+        post['author'] = user['username']
+        post['author_role'] = user['role']
+        post['author_status'] = user['status']
     return render_template('forum/forum.html', posts=posts,topics=topics, user_likes=user_likes, recommendations=recommendations)
 
+def post_view():
+    if 'username' not in session and session['role'] != 'admin':
+        return redirect(url_for('login'))
+
+    posts = list(posts_collection.find())
+    # Join with user collection to get author details
+    for post in posts:
+        user = users_collection.find_one({"_id": ObjectId(post["id_user"])})
+        post["author"] = user["username"] if user else "Unknown"
+
+    return render_template('admin/features/posts.html', posts=posts)
 
 def post_create(path, allowedFile):
     if 'username' not in session:
@@ -179,16 +209,16 @@ def post_delete(post_id,path):
 
     train_model()  # Update recommendations
     flash('Post deleted successfully!')
-    return redirect(url_for('forum'))
-
+    if session['role'] != 'admin':
+        return redirect(url_for('forum'))
+    else:
+        return redirect(url_for('view_posts'))
 
 
 def post_like(post_id):
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    print('=========================================')
-    print('INI ADALAH :',post_id)
     user_id = session.get('user_id')
     if not likes_collection.find_one({"user_id": user_id, "post_id": post_id}):
         likes_collection.insert_one({"user_id": user_id, "post_id": post_id})
@@ -206,8 +236,6 @@ def post_unlike(post_id):
         return redirect(url_for('login'))
 
     user_id = session.get('user_id')
-    print('=========================================')
-    print('INI ADALAH :',post_id)    
     like = likes_collection.find_one({"user_id": user_id, "post_id": post_id})
     if like:
         likes_collection.delete_one({"_id": like['_id']})
@@ -219,3 +247,4 @@ def post_unlike(post_id):
     else:
         return jsonify({"success": False, "message": "Post not liked yet"}), 400
     
+

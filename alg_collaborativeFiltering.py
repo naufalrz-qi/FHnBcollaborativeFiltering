@@ -3,21 +3,23 @@
 
 # In[30]:
 
-
 from pymongo import MongoClient
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from bson import ObjectId
 import random
 import json
+import os
+from dotenv import load_dotenv
 
-# Connect to MongoDB
-client = MongoClient('mongodb://localhost:27017')
-db = client['collaborativefilteringtest']  # Database name
+load_dotenv()
+mongo_uri = os.getenv('MONGO_URI')
+client = MongoClient(mongo_uri)
+db = client[os.getenv('MONGO_DB_NAME')]
 users_collection = db['users']
 posts_collection = db['posts']
 likes_collection = db['likes']
-
+answers_collection = db['answers']  # Add answers collection
 
 # In[31]:
 
@@ -26,7 +28,7 @@ def train_model():
     users = list(users_collection.find())
     posts = list(posts_collection.find())
     likes = list(likes_collection.find())
-
+    answers = list(answers_collection.find())  # Fetch answers
 
     # Create mappings for user and post IDs (using string IDs)
     user_ids = {str(user['_id']): idx for idx, user in enumerate(users)}
@@ -53,17 +55,28 @@ def train_model():
         post_idx = post_ids[post_id_str]
         
         ratings_matrix[user_idx, post_idx] = 1
+
+    for answer in answers:
+        user_id_str = str(answer['user_id'])
+        post_id_str = str(answer['post_id'])
         
+        # Debug output: Check if the ID exists in the mappings
+        if user_id_str not in user_ids:
+            print(f"User ID {user_id_str} not found in user_ids mapping")
+        if post_id_str not in post_ids:
+            print(f"Post ID {post_id_str} not found in post_ids mapping")
 
-
-    # In[32]:
-
+        user_idx = user_ids[user_id_str]
+        post_idx = post_ids[post_id_str]
+        
+        ratings_matrix[user_idx, post_idx] = 1
 
     # Calculate cosine similarity between users
     user_similarity = cosine_similarity(ratings_matrix)
     print('------------------------------------------------------')
     print('user similarity: ', user_similarity)
     print('------------------------------------------------------')
+    
     # Function to recommend posts for a given user based on similar users' likes
     def recommend_posts(user_idx, num_recommendations=5):
         sim_scores = user_similarity[user_idx]
@@ -88,12 +101,6 @@ def train_model():
         print('------------------------------------------------------')
         recommended_post_indices = np.argsort(post_scores)[::-1][:num_recommendations]
         return recommended_post_indices
-
-    recommend_posts(user_idx, num_recommendations=10)
-
-
-    # In[33]:
-
 
     # Generate recommendations for all users and save to a dictionary
     recommendations = {}

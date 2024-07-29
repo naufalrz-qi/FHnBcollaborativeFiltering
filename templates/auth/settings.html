@@ -1,0 +1,108 @@
+{% extends "layouts/base_normal.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block style %}
+<style>
+    .flashes {
+        list-style-type: none;
+        padding: 0;
+    }
+    .flashes li {
+        color: red;
+    }
+    #profile_pic_preview {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container bg-white rounded shadow p-5">
+    <h2>Settings</h2>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class="flashes">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+
+    <form method="post" action="{{ url_for('settings') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="mb-3">
+            <label for="username" class="form-label">Username:</label>
+            <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email:</label>
+            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="phone_number" class="form-label">Phone Number:</label>
+            <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ user.phone_number }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="profile_name" class="form-label">Profile Name:</label>
+            <input type="text" class="form-control" id="profile_name" name="profile_name" value="{{ user.profile_name }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="gender" class="form-label">Gender:</label>
+            <input type="text" class="form-control" id="gender" name="gender" value="{{ user.gender }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="current_password" class="form-label">Current Password:</label>
+            <input type="password" class="form-control" id="current_password" name="current_password" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="new_password" class="form-label">New Password (optional):</label>
+            <input type="password" class="form-control" id="new_password" name="new_password">
+        </div>
+
+        <div class="mb-3">
+            <label for="profile_pic" class="form-label">Profile Picture (optional):</label>
+            <input type="file" class="form-control" id="profile_pic" name="profile_pic" onchange="previewImage(this)">
+            {% if user.profile_pic %}
+                <img id="profile_pic_preview" src="{{ user.profile_pic }}" alt="Profile Picture" style="height: 300px;">
+                <div class="form-check mt-2">
+                    <input type="checkbox" class="form-check-input" id="remove_pic" name="remove_pic">
+                    <label class="form-check-label" for="remove_pic">Remove Picture</label>
+                </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-info text-light bg-gradient">Update Settings</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    function previewImage(input) {
+        var preview = document.getElementById('profile_pic_preview');
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

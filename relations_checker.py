@@ -3,10 +3,12 @@ from bson import ObjectId
 from bson.errors import InvalidId
 import os
 from time import sleep
+from dotenv import load_dotenv
 
+load_dotenv()
 mongo_uri = os.getenv('MONGO_URI')
 client = MongoClient(mongo_uri)
-db = client['collaborativefilteringtest']
+db = client[os.getenv('MONGO_DB_NAME')]
 
 def is_valid_objectid(id):
     try:
@@ -68,6 +70,4 @@ def check_and_remove_orphans():
     print("Integrity check completed.")
 
 if __name__ == "__main__":
-    while True:
-        check_and_remove_orphans()
-        sleep(3600)  # Menjalankan pemeriksaan setiap 1 jam
+    check_and_remove_orphans()

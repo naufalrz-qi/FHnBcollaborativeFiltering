@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import json
 from bson import ObjectId
 from . import users_collection, posts_collection, likes_collection
+from alg_collaborativeFilteringSearch import train_search_model
 
 def load_recommendations(user_id):
     with open('recommendations.json', 'r') as file:
@@ -22,7 +23,8 @@ def load_recommendations(user_id):
     return recommended_posts
 
 def load_recommendations_by_topic(user_id,topic):
-    with open('recommendations.json', 'r') as file:
+    train_search_model(topic)
+    with open('search_recommendations.json', 'r') as file:
         recommendations_data = json.load(file)
     
     # Ambil rekomendasi untuk user saat ini

@@ -8,6 +8,21 @@
         </div>
 
         <div class="form-group mb-3">
+            <label for="source">Source:</label>
+            <div id="source-container-edit">
+                <small id="sourceHelp" class="form-text text-muted">Masukkan sumber informasi atau referensi (misalnya, URL, buku, artikel).</small>
+                {% if answer.source %}
+                    {% for item in answer.source %}
+                        <input class="form-control mb-2" name="source[]" id="source" placeholder="Masukkan sumber informasi atau referensi yang Anda gunakan" value="{{ item }}"/>
+                    {% endfor %}
+                {% else %}
+                <input class="form-control mb-2" name="source[]" id="source" placeholder="Masukkan sumber informasi atau referensi yang Anda gunakan" value=""/>
+                {% endif %}
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addSourceFieldEdit()">Tambah Sumber</button>
+        </div>
+
+        <div class="form-group mb-3">
             <label for="answer_pic">Upload Image:</label>
             <input type="file" class="form-control" name="answer_pic" id="answer_pic">
         </div>
