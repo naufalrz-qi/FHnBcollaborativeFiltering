@@ -5,8 +5,12 @@ from . import users_collection, posts_collection, likes_collection
 from alg_collaborativeFilteringSearch import train_search_model
 
 def load_recommendations(user_id):
-    with open('recommendations.json', 'r') as file:
-        recommendations_data = json.load(file)
+    try:
+        with open('recommendations.json', 'r') as file:
+            recommendations_data = json.load(file)
+    except FileNotFoundError:
+        print("File recommendations.json tidak ditemukan.")
+        return []
     
     # Ambil rekomendasi untuk user saat ini
     recommended_post_ids = recommendations_data.get(str(user_id), [])
@@ -24,8 +28,12 @@ def load_recommendations(user_id):
 
 def load_recommendations_by_topic(user_id,topic):
     train_search_model(topic)
-    with open('search_recommendations.json', 'r') as file:
-        recommendations_data = json.load(file)
+    try:
+        with open('search_recommendations.json', 'r') as file:
+            recommendations_data = json.load(file)
+    except FileNotFoundError:
+        print("File recommendations.json tidak ditemukan.")
+        return []
     
     # Ambil rekomendasi untuk user saat ini
     recommended_post_ids = recommendations_data.get(str(user_id), [])
