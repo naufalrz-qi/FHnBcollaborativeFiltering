@@ -7,7 +7,7 @@ import os
 import json
 from flask_wtf.csrf import CSRFProtect
 from datetime import datetime, timedelta
-from alg_collaborativeFiltering import train_model
+from alg_collaborativeFilteringwithEvaluation import train_model
 from alg_collaborativeFilteringSearch import train_search_model, search_posts
 from validation import validate_phone_number, is_unique, ensure_admin_exists  # Import the validation functions
 from controllers.posts.routes import post_create, post_delete, post_like, post_unlike, post_edit, posts_by_topic, details_post, post_view
@@ -51,6 +51,8 @@ def run_checkers():
 @app.before_request
 def before_request():
     run_checkers()
+
+train_model
 
 def is_url(string):
     # Regex pattern to match URLs

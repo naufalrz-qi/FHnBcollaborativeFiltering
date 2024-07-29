@@ -1,13 +1,11 @@
 from pymongo import MongoClient
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-from bson import ObjectId
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 import pandas as pd
 import json
 import random
-
 
 # Connect to MongoDB
 client = MongoClient('mongodb://localhost:27017')
@@ -17,30 +15,12 @@ posts_collection = db['posts']
 likes_collection = db['likes']
 answers_collection = db['answers']  # Add answers collection
 
-def train_search_model(query):
+def train_model():
     # Fetch data from MongoDB
     users = list(users_collection.find())
-    search_query = {
-        "$or": [
-            { "date": { "$regex": query, "$options": "i" } },
-            { "question": { "$regex": query, "$options": "i" } },
-            { "topic": { "$regex": query, "$options": "i" } },
-            { "id_user": { "$regex": query, "$options": "i" } },
-            { "title": { "$regex": query, "$options": "i" } },
-            { "post_pic": { "$regex": query, "$options": "i" } }
-        ]
-    }
-    posts = list(posts_collection.find(search_query))
-
-    if not posts:
-        posts = list(posts_collection.find())
-        
-    # Get likes for filtered posts
-    post_ids = [str(post['_id']) for post in posts]
-    likes = list(likes_collection.find({'post_id': {'$in': post_ids}}))
-    # Get answers for filtered posts
-    answers = list(answers_collection.find({'post_id': {'$in': post_ids}}))
-
+    posts = list(posts_collection.find())
+    likes = list(likes_collection.find())
+    answers = list(answers_collection.find())  # Fetch answers
 
     # Create mappings for user and post IDs (using string IDs)
     user_ids = {str(user['_id']): idx for idx, user in enumerate(users)}
@@ -82,7 +62,7 @@ def train_search_model(query):
         post_idx = post_ids[post_id_str]
         
         ratings_matrix[user_idx, post_idx] = 1
-
+        
     def create_train_test_split(ratings_matrix, test_size=0.2):
         num_users, num_posts = ratings_matrix.shape
         # Create an empty matrix for train and test
@@ -116,7 +96,7 @@ def train_search_model(query):
     print('------------------------------------------------------')
     
     # Function to recommend posts for a given user based on similar users' likes
-    def recommend_posts(user_idx, num_recommendations=3):
+    def recommend_posts(user_idx, num_recommendations=5):
         print('Processing recommendations for user index:', user_idx)
         sim_scores = user_similarity[user_idx]
         print('Similarity scores:', sim_scores)
@@ -147,15 +127,15 @@ def train_search_model(query):
         if user_idx >= user_similarity.shape[0]:
             print(f"User index {user_idx} is out of bounds for user_similarity with shape {user_similarity.shape}")
             continue
-        recommended_posts = recommend_posts(user_idx, num_recommendations=3)
+        recommended_posts = recommend_posts(user_idx, num_recommendations=5)
         print('------------------------------------------------------')
-        print('Search Recommended posts:', recommended_posts)
+        print('Recommended posts:', recommended_posts)
         print('------------------------------------------------------')
         recommended_post_ids = [list(post_ids.keys())[list(post_ids.values()).index(post_idx)] for post_idx in recommended_posts]
         recommendations[user_id_str] = recommended_post_ids
 
     # Save recommendations to a JSON file
-    with open('search_recommendations.json', 'w') as f:
+    with open('recommendations.json', 'w') as f:
         json.dump(recommendations, f)
 
     # Evaluate model
@@ -216,36 +196,9 @@ def visualize_user_similarity(user_similarity):
     print("Distribution of User Similarities:")
     print(pd.Series(similarity_scores).describe())
 
+# Train the model
+train_matrix, recommendations, user_similarity = train_model()
 
-
-def search_posts(query, user_id):
-    
-    search_query = {
-        "$or": [
-            { "date": { "$regex": query, "$options": "i" } },
-            { "question": { "$regex": query, "$options": "i" } },
-            { "topic": { "$regex": query, "$options": "i" } },
-            { "id_user": { "$regex": query, "$options": "i" } },
-            { "title": { "$regex": query, "$options": "i" } },
-            { "post_pic": { "$regex": query, "$options": "i" } }
-        ]
-    }
-    search_results = list(posts_collection.find(search_query))
-    search_results_ids = [str(result['_id']) for result in search_results]
-    # Train the model
-    train_matrix, recommendations, user_similarity = train_search_model(query)
-
-    # Visualize the recommendations and user similarities
-    visualize_recommendations(recommendations)
-    visualize_user_similarity(user_similarity)
-
-    if user_id:
-        with open('search_recommendations.json', 'r') as f:
-            recommendations = json.load(f)
-
-        user_recommended_posts = recommendations.get(str(user_id), [])
-        filtered_recommendations = [post for post in user_recommended_posts if post in search_results_ids]
-        search_recommendations = list(posts_collection.find({"_id": {"$in": [ObjectId(post_id) for post_id in filtered_recommendations]}}))
-        return search_recommendations
-    else:
-        return search_results
+# Visualize the recommendations and user similarities
+visualize_recommendations(recommendations)
+visualize_user_similarity(user_similarity)

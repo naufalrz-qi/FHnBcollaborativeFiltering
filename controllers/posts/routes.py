@@ -4,7 +4,7 @@ from . import users_collection, topics_collection, posts_collection, likes_colle
 import os
 from bson import ObjectId
 from datetime import datetime
-from alg_collaborativeFiltering import train_model
+from alg_collaborativeFilteringwithEvaluation import train_model
 from validation import validate_phone_number, is_unique, ensure_admin_exists, allowed_file
 from controllers.algorithm.routes import load_recommendations_by_topic
 import json
