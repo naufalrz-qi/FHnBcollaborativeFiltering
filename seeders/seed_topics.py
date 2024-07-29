@@ -1,38 +1,34 @@
-import os
 from pymongo import MongoClient
+import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
+def create_topics_collection():
 
-# Connect to MongoDB
-mongo_uri = os.getenv('MONGO_URI')
-client = MongoClient(mongo_uri)
-db = client['collaborativefilteringtest']
-topics_collection = db['topics']
+    mongo_uri = os.getenv('MONGO_URI')
+    client = MongoClient(mongo_uri)
+    db = client[os.getenv('MONGO_DB_NAME')]
+    posts_collection = db['posts']
+    topics_collection = db['topics']
 
-# Define a list of topics to seed
-topics = [
-    {"name": "Health"},
-    {"name": "Beauty"},
-    {"name": "Fitness"},
-    {"name": "Nutrition"},
-    {"name": "Mental Health"},
-    {"name": "Skincare"},
-    {"name": "Haircare"},
-    {"name": "Exercise"},
-    {"name": "Diet"},
-    {"name": "Wellness"}
-]
+    # Ambil semua topik dari koleksi posts
+    posts = posts_collection.find({}, {'topic': 1})
 
+    # Gunakan set untuk menyimpan topik unik
+    unique_topics = set()
 
-existing_topics = topics_collection.find()
-existing_topic_names = [topic['name'] for topic in existing_topics]
+    for post in posts:
+        topic = post.get('topic')
+        if topic:
+            unique_topics.add(topic)
 
-for topic in topics:
-    if topic['name'] not in existing_topic_names:
-        topics_collection.insert_one(topic)
-        print(f"Inserted topic: {topic['name']}")
-    else:
-        print(f"Topic already exists: {topic['name']}")
+    # Masukkan topik unik ke dalam koleksi topics
+    topics_collection.delete_many({})  # Bersihkan koleksi sebelumnya jika ada
+    topics_documents = [{'name': topic} for topic in unique_topics]
+    if topics_documents:
+        topics_collection.insert_many(topics_documents)
+    
+    print(f"Successfully inserted {len(topics_documents)} unique topics into the 'topics' collection.")
 
+# Jalankan fungsi
+create_topics_collection()

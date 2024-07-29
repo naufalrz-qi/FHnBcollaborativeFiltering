@@ -4,11 +4,13 @@ from pymongo import MongoClient
 from bson import ObjectId
 import bcrypt
 from datetime import datetime
+from dotenv import load_dotenv
 
+load_dotenv()
 # Connect to MongoDB
 mongo_uri = os.getenv('MONGO_URI')
 client = MongoClient(mongo_uri)
-db = client['collaborativefilteringtest']
+db = client[os.getenv('MONGO_DB_NAME')]
 users_collection = db['users']
 topics_collection = db['topics']
 

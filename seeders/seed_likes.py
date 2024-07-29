@@ -1,9 +1,12 @@
 import random
 from pymongo import MongoClient
+import os
+from dotenv import load_dotenv
 
-# Menghubungkan ke MongoDB
-client = MongoClient('mongodb://localhost:27017/')
-db = client['collaborativefilteringtest']
+load_dotenv()
+mongo_uri = os.getenv('MONGO_URI')
+client = MongoClient(mongo_uri)
+db = client[os.getenv('MONGO_DB_NAME')]
 
 # Koleksi pengguna dan postingan
 users_collection = db['users']

@@ -7,11 +7,16 @@ from sklearn.metrics import mean_absolute_error
 import pandas as pd
 import json
 import random
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 # Connect to MongoDB
-client = MongoClient('mongodb://localhost:27017')
-db = client['collaborativefilteringtest']  # Database name
+mongo_uri = os.getenv('MONGO_URI')
+client = MongoClient(mongo_uri)
+db = client[os.getenv('MONGO_DB_NAME')]
+
 users_collection = db['users']
 posts_collection = db['posts']
 likes_collection = db['likes']
@@ -167,7 +172,10 @@ def train_search_model(query):
             if test_matrix[user_idx, post_idx] != 0:
                 actual_ratings.append(test_matrix[user_idx, post_idx])
                 predicted_ratings.append(predict_rating(user_idx, post_idx, train_matrix, user_similarity))
-
+        # Tambahkan pengecekan untuk memastikan kedua array tidak kosong
+    if len(actual_ratings) == 0 or len(predicted_ratings) == 0:
+        print("Warning: Salah satu atau kedua array kosong.")
+        return None  # atau lakukan penanganan yang sesuai
     mae = mean_absolute_error(actual_ratings, predicted_ratings)
     print(f'Mean Absolute Error: {mae}')
 
@@ -233,11 +241,15 @@ def search_posts(query, user_id):
     search_results = list(posts_collection.find(search_query))
     search_results_ids = [str(result['_id']) for result in search_results]
     # Train the model
-    train_matrix, recommendations, user_similarity = train_search_model(query)
+    result = train_search_model(query)
 
-    # Visualize the recommendations and user similarities
-    visualize_recommendations(recommendations)
-    visualize_user_similarity(user_similarity)
+    if result is not None:
+        train_matrix, recommendations, user_similarity = result
+        # Visualize the recommendations and user similarities
+        visualize_recommendations(recommendations)
+        visualize_user_similarity(user_similarity)
+    else:
+        print("Gagal melatih model. Tidak dapat melanjutkan.")
 
     if user_id:
         with open('search_recommendations.json', 'r') as f:

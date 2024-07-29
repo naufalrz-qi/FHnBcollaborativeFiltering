@@ -1,9 +1,12 @@
 from pymongo import MongoClient
 import datetime
+import os
+from dotenv import load_dotenv
 
-# Koneksi ke MongoDB
-client = MongoClient("mongodb://localhost:27017/")  # Ganti dengan URI MongoDB Anda
-db = client["collaborativefilteringtest"]
+load_dotenv()
+mongo_uri = os.getenv('MONGO_URI')
+client = MongoClient(mongo_uri)
+db = client[os.getenv('MONGO_DB_NAME')]
 users_collection = db["users"]
 
 # Pipeline agregasi untuk menambahkan field baru

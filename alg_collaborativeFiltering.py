@@ -9,10 +9,13 @@ from sklearn.metrics.pairwise import cosine_similarity
 from bson import ObjectId
 import random
 import json
+import os
+from dotenv import load_dotenv
 
-# Connect to MongoDB
-client = MongoClient('mongodb://localhost:27017')
-db = client['collaborativefilteringtest']  # Database name
+load_dotenv()
+mongo_uri = os.getenv('MONGO_URI')
+client = MongoClient(mongo_uri)
+db = client[os.getenv('MONGO_DB_NAME')]
 users_collection = db['users']
 posts_collection = db['posts']
 likes_collection = db['likes']

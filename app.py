@@ -29,7 +29,7 @@ csrf.init_app(app)
 # Connect to MongoDB
 mongo_uri = os.getenv('MONGO_URI')
 client = MongoClient(mongo_uri)
-db = client['collaborativefilteringtest']
+db = client[os.getenv('MONGO_DB_NAME')]
 users_collection = db['users']
 posts_collection = db['posts']
 answers_collection = db['answers']
@@ -52,7 +52,6 @@ def run_checkers():
 def before_request():
     run_checkers()
 
-train_model
 
 def is_url(string):
     # Regex pattern to match URLs

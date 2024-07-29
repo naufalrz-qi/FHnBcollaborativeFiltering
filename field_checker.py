@@ -2,11 +2,13 @@ from pymongo import MongoClient
 from datetime import datetime
 import os
 from time import sleep
+from dotenv import load_dotenv
 
+load_dotenv()
 # Mendapatkan URI MongoDB dari environment variable
 mongo_uri = os.getenv('MONGO_URI')
 client = MongoClient(mongo_uri)
-db = client['collaborativefilteringtest']
+db = client[os.getenv('MONGO_DB_NAME')]
 
 # Spesifikasi field yang diharapkan untuk setiap koleksi
 expected_fields = {
