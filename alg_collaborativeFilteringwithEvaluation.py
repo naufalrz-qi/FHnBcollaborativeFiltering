@@ -136,6 +136,9 @@ def train_model():
             print(f"User index {user_idx} is out of bounds for user_similarity with shape {user_similarity.shape}")
             continue
         recommended_posts = recommend_posts(user_idx, num_recommendations=5)
+        print('------------------------------------------------------')
+        print('recommended posts: ', recommended_posts)
+        print('------------------------------------------------------')
         recommended_post_ids = [list(post_ids.keys())[list(post_ids.values()).index(post_idx)] for post_idx in recommended_posts]
         recommendations[user_id_str] = recommended_post_ids
 

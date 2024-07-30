@@ -115,34 +115,23 @@ def train_search_model(query):
 
     # Calculate cosine similarity between users
     user_similarity = cosine_similarity(train_matrix)
-    print('------------------------------------------------------')
-    print('User similarity shape:', user_similarity.shape)
-    print('User similarity matrix:\n', user_similarity)
-    print('------------------------------------------------------')
+    
     
     # Function to recommend posts for a given user based on similar users' likes
     def recommend_posts(user_idx, num_recommendations=3):
-        print('Processing recommendations for user index:', user_idx)
+
         sim_scores = user_similarity[user_idx]
-        print('Similarity scores:', sim_scores)
-        print('------------------------------------------------------')
-        
+
         similar_users = np.argsort(sim_scores)[::-1][1:]  # Exclude the user itself
-        print('Similar users:', similar_users)
-        print('------------------------------------------------------')
+
         
         post_scores = np.zeros(num_posts)
     
         for similar_user in similar_users:
             post_scores += sim_scores[similar_user] * train_matrix[similar_user]
-            print('Post scores:', post_scores)
-            print('------------------------------------------------------')
 
-        print('Post score rate:',  post_scores[train_matrix[user_idx] > 0])
-        print('------------------------------------------------------')
         post_scores[train_matrix[user_idx] > 0] = 0
-        print('Post score filter:',  post_scores[train_matrix[user_idx] > 0])
-        print('------------------------------------------------------')
+
         recommended_post_indices = np.argsort(post_scores)[::-1][:num_recommendations]
         return recommended_post_indices
 
@@ -153,9 +142,6 @@ def train_search_model(query):
             print(f"User index {user_idx} is out of bounds for user_similarity with shape {user_similarity.shape}")
             continue
         recommended_posts = recommend_posts(user_idx, num_recommendations=3)
-        print('------------------------------------------------------')
-        print('Search Recommended posts:', recommended_posts)
-        print('------------------------------------------------------')
         recommended_post_ids = [list(post_ids.keys())[list(post_ids.values()).index(post_idx)] for post_idx in recommended_posts]
         recommendations[user_id_str] = recommended_post_ids
 

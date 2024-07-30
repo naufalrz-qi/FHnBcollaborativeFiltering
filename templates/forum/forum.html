@@ -53,7 +53,7 @@
                                 <div class="d-flex justify-content-between">
                                     <div>
                                         <a href="/posts/topic/{{ post.topic }}" class="btn btn-info bg-gradient text-light py-1 px-2 mb-2"><small>{{ post.topic }}</small></a>
-                                    <h4 class="post-item m-0">{{ post.title }}</h4>
+                                    <h4 class="post-item m-0">{{ post.title|truncate(100, True)|safe }}</h4>
                                     </div>
                                     
                                     <div class="dropdown">
@@ -88,7 +88,8 @@
                                 {% endif %}
                             </p>
                         
-                                <p class="justify-pre-wrap">{{ post.question }}</p>
+                            <p class="justify-pre-wrap">{{ post.question|safe }}</p>
+
                             
                                 {% if post.post_pic %}
                                     <img src="{{ url_for('static', filename='uploads/post/img/' + post.post_pic) }}" alt="Post Picture" id="post-image" class="img-fluid mb-2 rounded object-fit-cover w-100" style="height: 300px;">
@@ -137,7 +138,7 @@
                         
                         <div class="d-flex justify-content-between text-align-center">
                             
-                            <h4 class="post-item">{{ post.title }}</h4>
+                            <h4 class="post-item">{{ post.title|safe }}</h4>
                             
                             <div class="dropdown">
                                 <button class="btn bg-transparent border-0 dropdown-toggle" type="button" id="postOptions-{{ post._id }}" data-bs-toggle="dropdown" aria-expanded="false">
@@ -171,7 +172,8 @@
                         {% endif %}
                     </p>
                 
-                        <p class="justify-pre-wrap">{{ post.question }}</p>
+                    <p class="justify-pre-wrap">{{ post.question|truncate(100, True)|safe }}</p>
+
                      
                         {% if post.post_pic %}
                             <img src="{{ url_for('static', filename='uploads/post/img/' + post.post_pic) }}" alt="Post Picture" id="post-image" class="img-fluid mb-2 rounded object-fit-cover w-100" style="height: 300px;">

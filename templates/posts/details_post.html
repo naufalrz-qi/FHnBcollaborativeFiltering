@@ -48,7 +48,7 @@
         <div class="d-flex justify-content-between">
             <div>
                 <a href="/posts/topic/{{ post.topic }}" class="btn btn-info bg-gradient text-light py-1 px-2 mb-2"><small>{{ post.topic }}</small></a>
-            <h4 class="post-item m-0">{{ post.title }}</h4>
+            <h4 class="post-item m-0">{{ post.title|safe }}</h4>
             </div>
             {% if post.id_user == session['user_id'] %}
             
@@ -81,7 +81,7 @@
             {% endif %}
         {% endif %}</p>
 
-        <p class="justify-pre-wrap">{{ post.question }}</p>
+        <p class="justify-pre-wrap">{{ post.question|safe }}</p>
         {% if post.post_pic %}
             <img src="{{ url_for('static', filename='uploads/post/img/' + post.post_pic) }}" alt="Post Picture" class="post-image mb-3 rounded">
         {% endif %}
@@ -162,7 +162,7 @@
                         {% endif %}
                     {% endif %} on {{ answer.date }}</small>
                     <div class="d-flex justify-content-between">
-                        <p class="mb-1 answer-content">{{ answer.content }}</p>
+                        <p class="mb-1 answer-content">{{ answer.content|safe }}</p>
                         {% if answer.user_id == session['user_id'] %}
                         <div class="dropdown">
                             <button class="btn bg-transparent border-0 dropdown-toggle" type="button" id="answerOptions-{{ answer._id }}" data-bs-toggle="dropdown" aria-expanded="false">
