@@ -20,7 +20,7 @@ def add_likes_for_users_once():
 
     for user in users:
         user_id = str(user['_id'])  # Konversi _id pengguna menjadi string
-        num_likes = random.randint(1, 200)
+        num_likes = random.randint(1, 300)
         liked_posts = random.sample(post_ids, num_likes)
 
         for post_id in liked_posts:

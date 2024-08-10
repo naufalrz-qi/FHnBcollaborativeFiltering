@@ -24,7 +24,7 @@ posts = list(posts_collection.find())
 def generate_answers(posts, topics, users):
     answers = []
     for user in users:
-        num_posts = random.randint(1, 200)
+        num_posts = random.randint(1, 250)
         chosen_posts = random.sample(posts, num_posts)
         for post in chosen_posts:
             topic_name = post['topic']
@@ -34,6 +34,7 @@ def generate_answers(posts, topics, users):
                 "post_id": str(post["_id"]),
                 "user_id": str(user["_id"]),
                 "content": answer_content,
+                "source":['http://127.0.0.1'],
                 "answer_pic": '',
                 "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
